@@ -1,8 +1,10 @@
 # Strawberry Hollow · Fairy Grotto implementation plan
 
 **Level** `Lvl_FirstSteps` in the Unreal Parkour project  
-**Current milestone** Local baseline verified at 36a6be9. Layout study is next. GitHub upload awaits explicit approval.  
-**Next user checkpoint** Review 1 — camera views and route walkthrough after blockout.  
+**Current milestone** Layout review on `level/first-steps-layout`. Art development is paused for a new style direction. Local Git baseline is 36a6be9. GitHub upload awaits explicit approval.
+
+**Next user checkpoint** Review 1 — confirm the clearing footprint, crossing positions, and path from the spawn bank to Pip.
+
 **Revision tracking destination** [countnoobula/strawberry-hollow](https://github.com/countnoobula/strawberry-hollow)
 
 ## What we are building
@@ -11,15 +13,28 @@ From ChibiRunner’s starting bank, four glossy amber mushrooms draw a diagonal 
 
 The ground should feel soft and continuous. Moss wraps banks, stones, and roots wherever traffic has spared it. The dirt path wears through that cover. Bark ridges catch light, pebbles cast contact shadows, water reveals its bed, and mushroom rims transmit a little sunlight. Those small changes in shape, material, and shadow are what give the reference its depth. A possible later interaction is a temporary, slowly recovering depression when ChibiRunner steps into moss.
 
-**Primary references** The user-selected “Bring the lantern to Pip” gameplay image and the [approved elevated composition](<C:/Users/count/.codex/generated_images/01a209fe-2157-7d60-bfa0-6df3163d7128/exec-c7c20ef0-94f5-4de9-bd0d-e55ade713bc8.png>). Preserve both with the project during baseline setup after checking the images already in `SourceArt/ConceptArt`.
+**Primary references** The user-selected “Bring the lantern to Pip” gameplay image and the [approved elevated composition](SourceArt/ConceptArt/FirstSteps.png). Preserve both with the project during baseline setup after checking the images already in `SourceArt/ConceptArt`.
 
 ### Approved playable boundary
 
 Build one enclosed woodland valley matching the visible clearing. Worn dirt paths curl around the mossy banks and meet the mushroom crossing, with a clear approach to Pip’s door. Use dense shrubbery backed by roots and rising ground along the perimeter. Leave readable openings only where the player can travel. Check sightlines and boundary collision at running, jumping, and swinging height. Fit traversal beats inside this footprint only where they serve the pictured clearing.
 
+### Left-bank route and bridges
+
+Follow the reference from the near bank. A worn dirt path curves left along the water and climbs to the pale fallen birch on the upper-left trail. The log spans a small break in that trail and is playable as a balance crossing. Closer to the mushroom crossing, the large moss-covered root arches over the creek. Its crown is a second playable bridge, with walkable approaches at both ends and an open view of water beneath the arch. Keep the two crossings distinct in silhouette and position. The four amber mushrooms remain the direct crossing toward Pip.
+
+- [ ] At user review 1, compare the overview with the reference for the left path’s curve, upstream birch span, root arch, and open water beneath it. Walk both bridges from their dirt-path approaches and check their exits at player height.
+
+### Creek depth and wading
+
+Use ChibiRunner’s in-game body as the scale reference. Beneath the mushroom crossing, shape the creek bed so that after a missed jump she can plant her feet with the waterline between her waist and chest. Grade the bed up toward the banks so she can wade back onto the path. Keep the clear water and visible pebbles of the reference.
+
+- [x] Test the creek beside the middle mushrooms. Drop ChibiRunner onto the bed, capture the waterline and wading pose, then walk back to dry ground.
+- [x] Traversal pass — have ChibiRunner move through this depth with grounded wading steps and her arms held out to either side for balance. Check the transition from landing to wading and back to normal movement on the bank.
+
 ## How to follow progress
 
-A checked task means its stated result has been verified. A checked user review means the user has accepted that checkpoint. As work advances, update the current milestone, check completed items, and record evidence or requested changes in the log below. At each review, present the relevant screenshots or playtest and wait for feedback before building on that decision.
+A checked task means its stated result has been verified. A checked user review means the user has accepted that checkpoint. As work advances, update the current milestone, check completed items, and record evidence or requested changes in the log below. Collect screenshots and playtest evidence at each review. The current stop is the layout check-in. Resume art development after the user sets the new style direction. User approval stays open until that review.
 
 ## 0 · Agree on the target and protect the starting point
 
@@ -32,11 +47,20 @@ A checked task means its stated result has been verified. A checked user review 
 
 ## 1 · Settle the whole map layout
 
-- [ ] Map the current spawn, lantern pickup, creek, mushroom crossing, cottage, approach route, and optional traversal. Identify what the player can see at each decision point.
-- [ ] Block out the full route with simple shapes and existing actors. Establish stream direction, bank heights, path widths, crossings, main tree masses, and the space around the cottage. Keep the four caps and the arch readable in silhouette.
+- [x] Map the current spawn, lantern pickup, creek, mushroom crossing, cottage, approach route, and optional traversal. Identify what the player can see at each decision point.
+- [x] Block out the full route with simple shapes and existing actors. Establish stream direction, bank heights, path widths, crossings, main tree masses, and the space around the cottage. Keep the four caps and the arch readable in silhouette.
 - [ ] Fit the birch, rope line, zip line, and pendulum swing around the terrain. Check approach room, release arcs, landing visibility, and a way back after a missed jump. Confirm which mechanics are working after handoff.
-- [ ] Save a repeatable elevated camera and a player-height view. Walk from spawn to Pip, carrying the lantern, and capture the same crossing from both cameras.
+- [x] Save a repeatable elevated camera and a player-height view. Walk from spawn to Pip, carrying the lantern, and capture the same crossing from both cameras.
 - [ ] **User review 1 — layout lock.** Show the full-map overview, the crossing at player height, and a short route walkthrough. Agree on scale, landmark positions, and route flow before detailed modeling.
+
+### Layout review evidence
+
+- [Playable reference angle](SourceArt/LayoutReview/gameplay-valley.png) and [bank-height view](SourceArt/LayoutReview/gameplay-approach.png). The named cameras in the Outliner are `Valley_ReferenceOverview` and `Valley_PlayerBank`.
+- [Overhead layout survey](SourceArt/LayoutReview/valley-overview.png). Overhead trees were hidden for this editor capture and restored afterward.
+- [Continuous playtest from spawn to Pip](SourceArt/LayoutReview/birch-walkthrough.mp4). ChibiRunner collected the lantern, followed the left dirt trail, crossed the upstream birch, and delivered it at the cottage. The route needed more clearance where the upper landing shelf met the far-bank path.
+- The root crown was walked in both directions. Near the center, the walk surface rises approximately 3.14 m above the level origin. The four-mushroom route was tested with four successive perch states and a landing on the far-bank Landscape.
+- [Wading test at the crossing](SourceArt/LayoutReview/gameplay-wading.png). At the sample point, the creek surface sits between the pelvis and upper spine. The grounded wade runs at 125 cm/s and returns to ordinary movement on shore. Splash rings now have no pawn collision.
+- The right-hand pendulum was verified as a short cottage-side swing with a dry-bank landing. The art currently placed in the level is provisional. The separately authored moss-footstep prototype is parked for the new art direction.
 
 ## 2 · Establish the ground, creek, and paths
 
@@ -67,7 +91,8 @@ Use the existing forest Blender kits as starting material. For each piece, inspe
 | Date | Result | Next decision |
 | --- | --- | --- |
 | 2026-11-24 | Read-only project inventory completed. Visual target, layout-first approach, and GitHub destination recorded. | User review 0, then baseline after handoff. |
-
 | 2026-11-24 | User approved the direction and confirmed Antigravity finished and saved. Remote had no refs before setup. | Establish baseline and start layout study. |
-
 | 2026-11-24 | Local baseline 36a6be9 verified with 596 LFS files and 89 First Steps actor packages. Created local layout branch. User confirmed the pictured valley, dirt paths, and shrub boundaries. | Remote upload pending approval. Capture in-engine views for layout review. |
+| 2026-11-24 | User confirmed the left dirt trail, pale birch balance bridge, and walkable root arch as distinct features of the reference layout. | Include both crossings in layout review 1. |
+| 2026-11-24 | Captured baseline views, relocated the spawn and lantern to the near bank, added a playable upstream birch and separated the arch from the cottage sightline. Built a Landscape path mask and creek bed. In PIE at (135, 970), water Z −8.5 cm fell between pelvis −23.2 and upper spine −5.0 while grounded. | Finish terrain dressing and bridge / quest / shore tests. |
+| 2026-11-24 | User requested the layout check-in ahead of final art. Saved a playable camera comparison and a continuous lantern-delivery recording; verified mushroom, root, birch and water routes. First Steps is set as the editor and game default map. | Review scale, paths and crossing positions; revisit visual style separately. |
