@@ -167,7 +167,8 @@ BOUNDS={
     'SM_Valley_MossCreekBoulder':((-.5093056,-.3984329,-.1053338),(.5789441,.4471750,.6134803)),
 }
 
-def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
+def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
+    creeping=creeping or shape is not None
     rng=random.Random(seed);ph=[rng.random()*2*pi for _ in range(9)]
     n=336 if creeping else 112
     verts=[];faces=[];indices=[];faceuv=[]
@@ -214,6 +215,15 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
             return t*t*(3-2*t)
         planes=[(-.69,.68,.20,.377),(.20,.94,.15,.388),
                 (.78,.32,.78,.694),(-.15,.80,-.68,.213),(.91,-.18,-.37,.552)]
+        if shape=='wedge':
+            planes=[(-.73,.52,.32,.35),(.21,.92,-.32,.36),
+                    (.71,.51,.67,.61),(.84,-.50,-.22,.439)]
+        elif shape=='bluff':
+            planes=[(-.88,.37,.33,.516),(-.55,.79,-.22,.345),
+                    (.90,.29,.32,.487),(.33,-.86,-.35,.342)]
+        elif shape=='step':
+            planes=[(.22,.94,-.20,.374),(-.79,.50,.37,.41),
+                    (.88,.38,.10,.576),(.65,-.55,-.50,.46)]
         for ring_ids,(_,zf) in zip(rings,layers):
             for idx in ring_ids:
                 x,y,z=verts[idx]
@@ -224,6 +234,15 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
                 heading=max(0,cos(th-.30))
                 shoulder_top=.56+.14*sin(th+.11)
                 lobe=.225*heading**3*smooth(-.14,.18,zf)*(1-smooth(shoulder_top-.16,shoulder_top+.17,zf))
+                if shape=='wedge':
+                    lobe=.10*max(0,cos(th-.85))**2*smooth(-.1,.15,zf)*(1-smooth(.37,.77,zf))
+                elif shape=='bluff':
+                    lobe=.18*max(0,cos(th-2.81))**2*smooth(-.08,.38,zf)*(1-smooth(.51,.88,zf))
+                elif shape=='step':
+                    # The step occupies one flank and fades at both ends.
+                    flank=max(0,cos(th-.49))**2
+                    ledge_top=.27+.10*sin(th+.23)
+                    lobe=.24*flank*smooth(-.14,.10,zf)*(1-smooth(ledge_top,ledge_top+.15,zf))
                 axis=Vector((x,y)).normalized()
                 x+=axis.x*lobe;y+=axis.y*lobe
                 radius=math.hypot(x,y)
@@ -372,6 +391,14 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
         # lobe faces local +Y in Blender, corresponding to the creek approach.
         tongues=[(91,.34,.195,.07),(56,.21,.108,-.03),(-72,.29,.214,-.12),
                  (-151,.19,.17,.08),(153,.15,.108,-.07)]
+        if shape=='wedge':
+            tongues=[(124,.46,.18,-.10),(39,.24,.082,.03),(-72,.37,.154,.06)]
+        elif shape=='bluff':
+            tongues=[(72,.26,.22,.13),(101,.16,.087,.05),(167,.43,.14,-.09),
+                     (-115,.23,.17,.12)]
+        elif shape=='step':
+            tongues=[(48,.36,.151,-.09),(79,.16,.105,.03),(-178,.42,.129,.06),
+                     (-60,.21,.18,-.12)]
         for ring_number,ring_ids in enumerate(moss_rings[:shoulder]):
             level=ring_number/5
             t=min(1,max(0,(level-.8)/6.2))
@@ -456,6 +483,14 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
                 face=moss_rim_face_start+r*n+i
                 us=(lengths[k],lengths[k+1],lengths[k+1],lengths[k])
                 faceuv[face]=[(u,skirt_v[idx]) for u,idx in zip(us,faces[face])]
+    # Shape the complete skin and stone together, so the crown, turned-over
+    # rim and individual shoots all keep their contact with the underlying rock.
+    if shape=='wedge':
+        verts=[(1.27*x,y*(.88+.12*x),z*(.73+.51*x)+.020*x) for x,y,z in verts]
+    elif shape=='bluff':
+        verts=[(.87*x-.21*z,1.025*y+.085*z,1.19*z) for x,y,z in verts]
+    elif shape=='step':
+        verts=[(1.11*x,.91*y,z*(.90-.12*x)+.027*y) for x,y,z in verts]
     mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.materials.append(rock);mesh.materials.append(boulder_moss if creeping else moss);mesh.materials.append(tipmat)
     mesh.update();uv=mesh.uv_layers.new(name='SurfaceUV')
     for poly_,mi,coords in zip(mesh.polygons,indices,faceuv):
@@ -464,7 +499,9 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
     obj=bpy.data.objects.new(name,mesh);scene.collection.objects.link(obj)
     for ob in bpy.context.selected_objects:ob.select_set(False)
     obj.select_set(True);bpy.context.view_layer.objects.active=obj
-    if creeping or '--variant-only' not in sys.argv:
+    export_mesh=(shape is not None if '--creek-set-only' in sys.argv else
+                 name=='SM_Valley_CreepingMossBoulder' if '--variant-only' in sys.argv else True)
+    if export_mesh:
         bpy.ops.export_scene.fbx(filepath=str(OUT/(name+'.fbx')),use_selection=True,object_types={'MESH'},axis_forward='-Y',axis_up='Z',apply_unit_scale=True,apply_scale_options='FBX_SCALE_NONE',bake_anim=False,add_leaf_bones=False,mesh_smooth_type='FACE',path_mode='RELATIVE')
     if name=='SM_Valley_MossCreekBoulder':
         # Existing FBX slot names are a reimport contract. Match the assigned
@@ -478,6 +515,13 @@ point=create('SM_Valley_MossPromontory',2.8,2.25,1.05,490,.82,.21)
 stone=create('SM_Valley_MossCreekBoulder',1.03,.83,.56,212,.88,.31)
 creeper=create('SM_Valley_CreepingMossBoulder',1.03,.83,.56,212,.88,.31,creeping=True)
 creeper.location=(-1.15,-1.8,0);creeper.rotation_euler.z=math.pi
+for tag,shape,seed,roundness,fringe,x in [
+        ('LowWedge','wedge',399,.79,.27,-2.10),
+        ('OffsetBluff','bluff',749,.61,.23,-.27),
+        ('SteppedFlank','step',589,.75,.25,1.55)]:
+    obj=create('SM_Valley_CreekBoulder_'+tag,1.03,.83,.56,seed,roundness,fringe,shape=shape)
+    obj.location=(x,-3.48,0)
+    obj.rotation_euler.z=math.pi
 shelf.location=(-2.5,0,0);point.location=(2,0,0);stone.location=(.4,-1.8,0)
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.file.pack_all()
