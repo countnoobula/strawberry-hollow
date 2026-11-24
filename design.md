@@ -59,3 +59,4 @@ Birch-trail moss should look deep and soft enough to lie on. Broad rounded cushi
 For the dirt path, keep the ochre faces smooth with broad gradients. Put the strongest relief on the shoulders of the slabs and let parts of the edges wear into the ground.
 Painted foliage follows the hand-placed planting palette. Pair rounded ivory or violet blooms with clover and arching grass, build shrubs from softly folded leaves, and nestle warm pebbles into cushion moss.
 Give broad leaves a tapering midrib with curved side veins and grass a few lengthwise ridges. Use gentle color variation and shallow normal-map relief so the veins catch grazing light. Keep the waxy highlight broad and the backlit edges yellow-green.
+Bellflower cups have five shallow, curved folds. A muted lavender shadow follows each groove and fades before the rolled lip.
