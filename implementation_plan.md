@@ -1,9 +1,9 @@
 # Strawberry Hollow · Fairy Grotto implementation plan
 
 **Level** `Lvl_FirstSteps` in the Unreal Parkour project  
-**Current milestone** Revised ravine and mushroom pool ready for layout review on `level/first-steps-layout`. The first playable clover and satin-grass patch is ready for review in [design.md](design.md). Local Git baseline is 36a6be9. The user approved publishing the baseline and layout checkpoint to GitHub.
+**Current milestone** Act 2 is the playable focus of `Lvl_FirstSteps`. The southern Act 1 course has been removed. ChibiRunner starts on the near bank of the valley.
 
-**Next user checkpoint** Review the clover and grass at runner height beside the first mushroom. The revised layout review remains open.
+**Next user checkpoint** Review the Act 2 clearing from the player start and the birch approach.
 
 **Revision tracking destination** [countnoobula/strawberry-hollow](https://github.com/countnoobula/strawberry-hollow)
 
@@ -132,3 +132,4 @@ Use the existing forest Blender kits as starting material. For each piece, inspe
 | 2026-11-24 | Also found bellflowers embedded in 36 mixed wildflower clusters. Rebuilt the bellflower part with the approved spray and retained the white flowers and clover. Final level count is 78 sprays. | Review the crossing capture above. |
 | 2026-11-24 | Replaced one foreground strawberry at the crossing with a plump modelled fruit, seeds seated in individual dimples, and thick curved leaflets on bowed stalks. | Review the [runner-height view](SourceArt/LayoutReview/crossing_berry_eye.jpg) and [seed detail](SourceArt/LayoutReview/crossing_berry_detail.jpg) before wider placement. |
 | 2026-11-24 | Strawberry trial approved. Updated the remaining five individually placed plants, including both cottage garden berries, and all 54 painted plants. Verified all 60 in Play-in-Editor. | [Garden berry at runner height](SourceArt/LayoutReview/garden_berries_eye.jpg). |
+| 2026-11-24 | Removed 23 actors belonging to the southern course, including the tributary and its footbridge. Reassigned the four traversal actors already used inside the valley to Act 2. Shared Landscape retained. | Play-in-Editor passed both routes from the near-bank spawn: all four mushrooms and lantern delivery to Pip, plus the birch beam, zip line and dry landing. |
