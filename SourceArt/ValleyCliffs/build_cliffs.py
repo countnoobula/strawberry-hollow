@@ -459,6 +459,60 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
                 limit=surface_radius+max(0,edge_padding)+.009
                 radius+=(min(radius,limit)-radius)*(1-smooth(3.6,6.2,level))
                 verts[idx]=(direction.x*radius,direction.y*radius,new_z)
+        # Roll the top into the flank over a hand-width band. A cubic section
+        # matches the existing flank and crown tangents at both ends; the
+        # lowest turn, which establishes the tongue lengths, stays in place.
+        flank=14
+        crown=shoulder+8
+        moss_face_ids=[f for f,material in zip(faces,indices) if material==1]
+        old_skin=BVHTree.FromPolygons(verts,moss_face_ids)
+        correction=np.zeros((crown-flank+1,n))
+        directions={}
+        for i in range(n):
+            band=[moss_rings[row][i] for row in range(flank,crown+1)]
+            path=[Vector(verts[idx]) for idx in band]
+            arc=np.r_[0.,np.cumsum([(b-a).length for a,b in zip(path,path[1:])])]
+            a,b=path[0],path[-1]
+            incoming=(a-Vector(verts[moss_rings[flank-3][i]])).normalized()
+            outgoing=(Vector(verts[moss_rings[crown+2][i]])-b).normalized()
+            arm=(b-a).length*.57
+            control_a=a+arm*incoming
+            control_b=b-arm*outgoing
+            for k,(idx,distance) in enumerate(zip(band[1:-1],arc[1:-1]),1):
+                t=float(distance/arc[-1]);s=1-t
+                p=s*s*s*a+3*s*s*t*control_a+3*s*t*t*control_b+t*t*t*b
+                # Add softness outside the original stone envelope rather than
+                # shaving the corner through the high point of the rock.
+                bulge=(sin(pi*t)**2)*.028
+                outward=Vector((p.x,p.y,0)).normalized()
+                p+=bulge*(outward+Vector((0,0,.85)))
+                verts[idx]=tuple(p)
+                direction=(outward*(1-t)+Vector((0,0,t))).normalized()
+                directions[idx]=direction
+                hit=stone_surface.ray_cast(p+direction,-direction,2)[0]
+                if hit is not None:
+                    correction[k,i]=max(0,.009-(p-hit).dot(direction))
+        # Carry clearance into the adjacent samples so an angular stone
+        # shoulder cannot poke through the continuous fillet or flatten it.
+        for _ in range(8):
+            blurred=(np.roll(correction,1,axis=1)+np.roll(correction,-1,axis=1)+
+                     np.roll(correction,1,axis=0)+np.roll(correction,-1,axis=0))*.25
+            correction=np.maximum(correction,blurred)
+            correction[[0,-1]]=0
+        for k in range(1,crown-flank):
+            for i,idx in enumerate(moss_rings[flank+k]):
+                verts[idx]=tuple(Vector(verts[idx])+float(correction[k,i])*directions[idx])
+        new_skin=BVHTree.FromPolygons(verts,moss_face_ids)
+        # Move each original seven-vertex leaf rigidly with its rooting point.
+        for root in range(center+1,len(verts),7):
+            x,y,_=verts[root]
+            origin=(x,y,hi[2]+1)
+            old=old_skin.ray_cast(origin,(0,0,-1))[0]
+            new=new_skin.ray_cast(origin,(0,0,-1))[0]
+            if old is None or new is None: continue
+            dz=new.z-old.z
+            for idx in range(root,root+7):
+                x,y,z=verts[idx];verts[idx]=(x,y,z+dz)
     # Unfold the turned lip into the same UV island as its crown. Each spoke
     # spends exactly as much UV distance as it travels over the finished mesh.
     # A horizontal top projection alone collapses the nap on vertical surfaces.
@@ -482,33 +536,6 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
             previous=point
     for face in range(moss_rim_face_start,moss_rim_face_start+shoulder*n):
         faceuv[face]=[rim_uv[idx] for idx in faces[face]]
-    if creeping:
-        # The much longer tongue has enough side-to-side slope to shear a
-        # radial projection. Unroll this variant's skirt along its perimeter.
-        # V follows the arc down from a world-height datum, so nearby spokes
-        # retain similar world-space density even where one extends further.
-        seam=3*n//4
-        lengths=[0.]
-        for k in range(n):
-            i=(seam+k)%n;j=(i+1)%n
-            a=Vector(verts[anchor[i]]);b=Vector(verts[anchor[j]])
-            lengths.append(lengths[-1]+.84*math.hypot(a.x-b.x,a.y-b.y))
-        skirt_v={}
-        for i in range(n):
-            previous=Vector(verts[anchor[i]])
-            v=.84*previous.z
-            skirt_v[anchor[i]]=v
-            for ring in reversed(moss_rings[:shoulder]):
-                idx=ring[i];point=Vector(verts[idx])
-                v-=.84*(point-previous).length
-                skirt_v[idx]=v
-                previous=point
-        for r in range(shoulder):
-            for i in range(n):
-                k=(i-seam)%n
-                face=moss_rim_face_start+r*n+i
-                us=(lengths[k],lengths[k+1],lengths[k+1],lengths[k])
-                faceuv[face]=[(u,skirt_v[idx]) for u,idx in zip(us,faces[face])]
     # Shape the complete skin and stone together, so the crown, turned-over
     # rim and individual shoots all keep their contact with the underlying rock.
     if shape=='wedge':
@@ -525,7 +552,29 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
     obj=bpy.data.objects.new(name,mesh);scene.collection.objects.link(obj)
     for ob in bpy.context.selected_objects:ob.select_set(False)
     obj.select_set(True);bpy.context.view_layer.objects.active=obj
-    export_mesh=(shape is not None if '--creek-set-only' in sys.argv else
+    if creeping:
+        # Relax the crown and visible drape together with the crown interior
+        # pinned to its world-scale UVs. A few short darts at the tucked lower
+        # lip relieve the longest tongues without cutting through the shoulder.
+        fixed={v for ring_ids in moss_rings[shoulder+8:] for v in ring_ids}
+        fixed.add(center)
+        for p in mesh.polygons:
+            p.select=p.material_index==1
+            if p.select:
+                for vid,lid in zip(p.vertices,p.loop_indices):
+                    if vid in fixed:
+                        uv.data[lid].uv=(verts[vid][0]*.84,verts[vid][1]*.84)
+                        uv.data[lid].pin_uv=True
+        darts={frozenset((moss_rings[row][i],moss_rings[row+1][i]))
+               for i in (5,53,76,103) for row in range(11)}
+        for edge in mesh.edges:
+            if frozenset(edge.vertices) in darts: edge.use_seam=True
+        bpy.context.tool_settings.mesh_select_mode=(False,False,True)
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.uv.unwrap(method='CONFORMAL',correct_aspect=False,margin=0)
+        bpy.ops.object.mode_set(mode='OBJECT')
+    export_mesh=(creeping if '--creek-boulders-only' in sys.argv else
+                 shape is not None if '--creek-set-only' in sys.argv else
                  name=='SM_Valley_CreepingMossBoulder' if '--variant-only' in sys.argv else True)
     if export_mesh:
         bpy.ops.export_scene.fbx(filepath=str(OUT/(name+'.fbx')),use_selection=True,object_types={'MESH'},axis_forward='-Y',axis_up='Z',apply_unit_scale=True,apply_scale_options='FBX_SCALE_NONE',bake_anim=False,add_leaf_bones=False,mesh_smooth_type='FACE',path_mode='RELATIVE')
