@@ -114,3 +114,4 @@ Use the existing forest Blender kits as starting material. For each piece, inspe
 | 2026-11-24 | Revised the crossing patch with fuller clover rims and thicker curved grass blades. | Compare the two eye-height captures before wider placement. |
 | 2026-11-24 | Fuller clover approved. Broadened the three grass blades in the crossing patch and captured a matched eye-height comparison. | Review the grass silhouette beside the approved clover. |
 | 2026-11-24 | Approved the outer arching blade and placed a nine-blade tuft beside the first mushroom. Captured both views in Play-in-Editor. | Review density, height variation, and curl. |
+| 2026-11-24 | Approved the nine-blade tuft and placed three more at varied scales along the path, interleaved with clover. | Review the spacing at gameplay height. |

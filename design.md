@@ -34,6 +34,8 @@ For a **Cine Camera** still, start at **f/2.8**, set the focus distance on the m
 - **Grass width trial · open for review.** At mid-blade the three grass silhouettes are 43%, 56%, and 64% wider than the preceding sample. Each blade has a fuller cross-section and a slight turn through the curl, with the existing satin material. Review the broad rear blade and the arcing outer blade together at runner height. [Grass comparison](SourceArt/LayoutReview/grass-width-comparison.jpg).
 - **Arching blade approved.** Use the outer, right-hand blade from the grass width trial as the grass shape reference.
 - **Tuft density trial · open for review.** One nine-blade tuft sits beside the first mushroom. Short outer blades curl toward the moss while taller blades stand through the middle. One blade retains the approved profile at its original size. [Eye height](SourceArt/LayoutReview/arch_tuft_eye.jpg) · [Beside ChibiRunner](SourceArt/LayoutReview/arch_tuft_character.jpg).
+- **Nine-blade tuft approved.** Use the arch tuft as a repeatable grass model. At the crossing, the placement trial adds three rotated copies at 82%, 101% and 91% asset scale, interleaved with two smaller clover groups. Leave gaps where moss and the worn edge can show. [View from the approach](SourceArt/LayoutReview/crossing_edge_eye.jpg) · [Whole path edge](SourceArt/LayoutReview/crossing_edge_character.jpg).
+
 
 
 [Eye-height view](SourceArt/LayoutReview/clover_pawn_eye.jpg) · [Character scale](SourceArt/LayoutReview/clover_character.jpg) · [Idle and crossing playtest](SourceArt/LayoutReview/clover-bank-playtest.mp4)
