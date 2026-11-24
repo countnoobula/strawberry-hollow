@@ -46,3 +46,7 @@ For a **Cine Camera** still, start at **f/2.8**, set the focus distance on the m
 A close-up 3D art-direction still of one path edge in ChibiRunner’s Fairy Grotto, at a tiny runner’s eye height. Focus on a handful of plump heart-shaped clover leaflets and a clump of broad grass blades. Each blade has visible thickness along the rim, a shallow central fold and a tapered, gently hooked tip. A turned leaf shows its underside. Subtle organic veins, broad waxy highlights, rich lime transmission where late-afternoon sunlight passes through a leaf, deep cool contact shadows between overlapping leaves. Moss wraps a rounded pebble and gives way to worn earth. The creek and an amber mushroom landing recede into soft focus. A hand-arranged miniature woodland with living botanical surfaces. Keep the path edge and nearest landing legible. Landscape framing. No lettering, UI, knit, stitching, fabric weave or plastic toy shine.
 
 </details>
+
+### Left trail to the birch
+
+The mushroom-crossing mix of arching grass and full clover is approved. Along the left dirt path, gather them in small groups with exposed moss between them. The last group sits on the shoulder before the birch so the player can see where to step onto the trunk.
