@@ -66,21 +66,52 @@ def make_surface(kind):
     broad=noise(15,3,3)
     drift=noise(23,6,7)
     if kind=='Creekstone':
-        # Warm neutral cobble. Very shallow bedding breaks into broad patches
-        # of subtly different weathering across the same stone face.
-        phase=2*pi*(yy*2+.16*np.sin(2*pi*xx)+.50*(broad-.5))
-        band=(.5+.5*np.cos(phase))**5
-        weather=noise(322,15,13)
-        light=np.clip(.16+.40*broad+.30*drift+.18*weather+.018*np.sin(phase)-.026*band,0,1)
-        shadow=np.array([.405,.385,.365])
-        base=shadow+(np.array([.64,.615,.58])-shadow)*light[:,:,None]
-        base+=(drift-.5)[:,:,None]*np.array([.020,.007,-.009])
-        mineral=.73*noise(215,5,5)+.27*noise(217,11,9)
-        warm_patch=np.clip((mineral-.52)/.33,0,1)
-        warm_patch=warm_patch*warm_patch*(3-2*warm_patch)
-        base-=warm_patch[:,:,None]*np.array([.043,.066,.083])
-        h=.23*broad+.15*drift+.13*weather-.018*band
-        rough=.77+.06*drift+.045*weather
+        # A skewed periodic fracture field gives the cliff broad, sloping planes.
+        # Differences between the nearest two distances locate chipped joints.
+        wx=.022*(noise(241,7,6)-.5)+.005*(noise(207,25,21)-.5)
+        wy=.027*(noise(203,5,7)-.5)+.006*(noise(205,18,23)-.5)
+        # Wrap world UVs, rather than the skewed lattice, at each tile boundary.
+        rng=np.random.default_rng(272)
+        centers=[]
+        for j in range(4):
+            for i in range(3):
+                centers.append(((i+rng.uniform(.12,.88))/3,(j+rng.uniform(.12,.88))/4,
+                                rng.uniform(-.8,.8),rng.uniform(-.8,.8),rng.uniform(-1,1)))
+        first=np.full_like(xx,20);second=first.copy()
+        plane=np.zeros_like(xx);tone=plane.copy()
+        for cx,cy,sx,sy,value in centers:
+            ux=(xx+wx-cx+.5)%1-.5
+            uy=(yy+wy-cy+.5)%1-.5
+            a=3*ux+uy;b=4*uy-ux
+            dist=np.sqrt(a*a+b*b)
+            closer=dist<first
+            second=np.minimum(second,np.where(closer,first,dist))
+            first=np.minimum(first,dist)
+            plane=np.where(closer,.017*(sx*a+sy*b),plane)
+            tone=np.where(closer,value,tone)
+        gap=second-first
+        bevel=np.clip(gap/.115,0,1)
+        bevel=bevel*bevel*(3-2*bevel)
+        exposure=np.clip((.7*noise(223,4,5)+.3*drift-.22)/.48,0,1)
+        joint=(1-bevel)*exposure
+        # One broken shoulder is broader than its opposing lip. Small joints
+        # peter out where the surface remains intact across the same plane.
+        chips=np.maximum(0,1-gap/.32)**2*np.clip(tone+.4,0,1)*exposure
+        quiet=np.clip((noise(342,5,5)-.30)/.40,0,1)
+        joint*=.28+.72*quiet
+        grain=noise(217,95,103)-.5
+        grit=noise(287,230,241)-.5
+        flakes=noise(295,26,31)-.5
+        # Mineral variation warms worn faces and cools the deepest cuts.
+        mineral=noise(303,10,9)-.5
+        light=.50+.40*(broad-.5)+.31*(drift-.5)+.21*flakes+.086*grain+.04*grit
+        light+=.14*tone*bevel-.43*joint-.11*chips
+        base=np.array([.344,.335,.316])+light[:,:,None]*np.array([.32,.302,.273])
+        base+=mineral[:,:,None]*np.array([.056,.028,-.010])
+        height=plane*bevel-.009*joint-.007*chips+.0045*flakes+.0010*grain+.00042*grit
+        # Central differences downstream expect height expressed in texel units.
+        h=height*size/7
+        rough=np.clip(.87+.08*joint+.08*flakes+.055*grain,.75,.97)
     else:
         # Broad fern-to-sage color remains legible as the smaller shoots mip out.
         clumps=cushion_heads(513,30,33)
