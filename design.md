@@ -32,6 +32,9 @@ For a **Cine Camera** still, start at **f/2.8**, set the focus distance on the m
 - **Second Unreal sample · thicker edges.** The concept established the clover shape. After seeing the first patch at runner height, the user requested a fuller rim. The second mesh increases nominal leaflet body thickness from 11.6% to 16% of leaflet length, rounds the shoulder of the rim, and carries a thicker grass cross-section through the curl. The satin material settings carry over from the first sample. [Compare the two meshes at eye height](SourceArt/LayoutReview/clover-rim-comparison.jpg).
 - **Fuller clover approved.** Use the second sample as the reference for leaflet thickness and rounded rims.
 - **Grass width trial · open for review.** At mid-blade the three grass silhouettes are 43%, 56%, and 64% wider than the preceding sample. Each blade has a fuller cross-section and a slight turn through the curl, with the existing satin material. Review the broad rear blade and the arcing outer blade together at runner height. [Grass comparison](SourceArt/LayoutReview/grass-width-comparison.jpg).
+- **Arching blade approved.** Use the outer, right-hand blade from the grass width trial as the grass shape reference.
+- **Tuft density trial · open for review.** One nine-blade tuft sits beside the first mushroom. Short outer blades curl toward the moss while taller blades stand through the middle. One blade retains the approved profile at its original size. [Eye height](SourceArt/LayoutReview/arch_tuft_eye.jpg) · [Beside ChibiRunner](SourceArt/LayoutReview/arch_tuft_character.jpg).
+
 
 [Eye-height view](SourceArt/LayoutReview/clover_pawn_eye.jpg) · [Character scale](SourceArt/LayoutReview/clover_character.jpg) · [Idle and crossing playtest](SourceArt/LayoutReview/clover-bank-playtest.mp4)
 
