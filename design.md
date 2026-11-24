@@ -56,3 +56,4 @@ Forest foliage should sway sideways in a slow passing breeze. Keep the roots anc
 Bellflowers across First Steps use a bowed green stem with six hanging lavender bells. Each bell has five soft folds and a pale curled rim. Vary the scale of the spray to suit its planting.
 Strawberries use a plump fruit with golden seeds nestled in individual dimples, a bowed stalk, and thick, gently curved leaflets.
 Birch-trail moss should look deep and soft enough to lie on. Broad rounded cushions carry a short, dense green nap, with gentle tonal variation and soft grazing highlights. Keep the dirt-edge lobes and pebble pockets legible.
+For the dirt path, keep the ochre faces smooth with broad gradients. Put the strongest relief on the shoulders of the slabs and let parts of the edges wear into the ground.
