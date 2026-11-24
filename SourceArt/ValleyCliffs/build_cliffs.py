@@ -129,29 +129,55 @@ def make_surface(kind):
 rock=make_surface('Creekstone');moss=make_surface('Moss')
 
 def terrain_moss_material():
-    # Match the terrain in sRGB swatches, using the shared moss nap for relief.
-    source=OUT.parent/'ValleyGround'/'T_MossGround01_Color.png'
-    image=bpy.data.images.load(str(source));image.colorspace_settings.name='Non-Color'
-    pixels=np.empty(len(image.pixels),np.float32);image.pixels.foreach_get(pixels)
-    rgb=pixels.reshape(-1,4)[::7,:3]
-    luminance=rgb@np.array([.2126,.7152,.0722])
-    levels=np.array([5,20,40,60,80,95])
-    palette=[]
-    for level in levels:
-        low,high=np.percentile(luminance,[level-2,level+2])
-        palette.append(rgb[(luminance>=low)&(luminance<=high)].mean(axis=0))
-    bpy.data.images.remove(image)
-    nap=.68*cushion_heads(513,30,33)+.32*cushion_heads(746,82,79)
-    shade=.55*noise(15,3,3)+.28*noise(23,6,7)+.12*noise(97,12,10)+.12*nap
-    ranks=np.interp(shade,np.percentile(shade,levels),levels)
-    palette=np.array(palette)
-    color=np.stack([np.interp(ranks,levels,col) for col in palette.T],axis=-1)
+    # Bend the terrain's color, height and surface channels together, preserving
+    # their local registration while giving the rock cushion its own growth.
+    u=(xx+.031*(noise(823,4,5)-.5)+.21)%1
+    v=(yy+.027*(noise(827,6,4)-.5)+.39)%1
+    def terrain_channel(suffix):
+        source=OUT.parent/'ValleyGround'/('T_MossGround01_'+suffix+'.png')
+        image=bpy.data.images.load(str(source));image.colorspace_settings.name='Non-Color'
+        image.scale(size,size)
+        pixels=np.empty(size*size*4,np.float32);image.pixels.foreach_get(pixels)
+        pixels=pixels.reshape(size,size,4)
+        ix=u*size;iy=v*size
+        x=ix.astype(int);y=iy.astype(int)
+        fx=(ix-x)[:,:,None];fy=(iy-y)[:,:,None]
+        rgb=(1-fy)*((1-fx)*pixels[y,x,:3]+fx*pixels[y,(x+1)%size,:3])
+        rgb+=fy*((1-fx)*pixels[(y+1)%size,x,:3]+fx*pixels[(y+1)%size,(x+1)%size,:3])
+        bpy.data.images.remove(image)
+        return rgb
+    soil_color=terrain_channel('Color')
+    relief=terrain_channel('Height')[:,:,0]
+    orm=terrain_channel('ORM')
+    lo,hi=np.percentile(relief,[1,99])
+    ground_height=np.clip((relief-lo)/(hi-lo),0,1)
+    tips=cushion_heads(746,82,79)
+    broad=noise(827,5,7)-.5
+    color=.86*soil_color+.14*np.array([.38,.47,.14])
+    color+=(.018*broad+.014*(tips-tips.mean()))[:,:,None]
+    height=np.clip(.07+.81*ground_height+.10*tips+.03*broad,0,1)
+    dx=(np.roll(height,-1,1)-np.roll(height,1,1))*7.0
+    dy=(np.roll(height,-1,0)-np.roll(height,1,0))*7.0
+    n=np.stack((-dx,-dy,np.ones_like(dx)),axis=2)
+    normal=n/np.linalg.norm(n,axis=2)[:,:,None]*.5+.5
+    # Red occlusion, green roughness, blue relief for Unreal's bump offset.
+    packed=np.stack((.38+.62*orm[:,:,0],.17+.80*orm[:,:,1],height),axis=2)
     diffuse=texture('T_ValleyBoulderMoss_BaseColor',color,False)
+    normals=texture('T_ValleyBoulderMoss_NormalGL',normal,True)
+    surface=texture('T_ValleyBoulderMoss_Surface',packed,True)
     mat=moss.copy();mat.name='M_ValleyBoulderMoss'
     mat.diffuse_color=tuple(color.mean(axis=(0,1)))+(1,)
-    for node in mat.node_tree.nodes:
-        if node.type=='TEX_IMAGE' and node.image.name=='T_ValleyMoss_BaseColor.png':
-            node.image=diffuse
+    tree=mat.node_tree
+    for node in list(tree.nodes):
+        if node.type!='TEX_IMAGE': continue
+        key=node.image.name
+        if 'BaseColor' in key:node.image=diffuse
+        elif 'NormalGL' in key:node.image=normals
+        elif 'Roughness' in key:
+            node.image=surface
+            separate=tree.nodes.new('ShaderNodeSeparateColor')
+            tree.links.new(node.outputs['Color'],separate.inputs['Color'])
+            tree.links.new(separate.outputs['Green'],tree.nodes.get('Principled BSDF').inputs['Roughness'])
     return mat
 
 boulder_moss=terrain_moss_material()
