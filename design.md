@@ -54,3 +54,4 @@ The mushroom-crossing mix of arching grass and full clover is approved. Along th
 The birch cushion moss is approved. The surrounding ground is in review. The current trial uses warm brown earth and a softer green grass base, keeping broad patches of color and dialing back small bright grains and surface bumps.
 Forest foliage should sway sideways in a slow passing breeze. Keep the roots anchored and the flowers, centers and leaves moving together. Give trial blooms clearance from neighboring stems throughout the sway.
 Bellflowers across First Steps use a bowed green stem with six hanging lavender bells. Each bell has five soft folds and a pale curled rim. Vary the scale of the spray to suit its planting.
+Strawberries use a plump fruit with golden seeds nestled in individual dimples, a bowed stalk, and thick, gently curved leaflets.
