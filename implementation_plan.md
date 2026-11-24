@@ -1,7 +1,7 @@
 # Strawberry Hollow · Fairy Grotto implementation plan
 
 **Level** `Lvl_FirstSteps` in the Unreal Parkour project  
-**Current milestone** Direction approved. Capture the saved baseline, then begin the layout study.  
+**Current milestone** Local baseline verified at 36a6be9. Layout study is next. GitHub upload awaits explicit approval.  
 **Next user checkpoint** Review 1 — camera views and route walkthrough after blockout.  
 **Revision tracking destination** [countnoobula/strawberry-hollow](https://github.com/countnoobula/strawberry-hollow)
 
@@ -13,6 +13,10 @@ The ground should feel soft and continuous. Moss wraps banks, stones, and roots 
 
 **Primary references** The user-selected “Bring the lantern to Pip” gameplay image and the [approved elevated composition](<C:/Users/count/.codex/generated_images/01a209fe-2157-7d60-bfa0-6df3163d7128/exec-c7c20ef0-94f5-4de9-bd0d-e55ade713bc8.png>). Preserve both with the project during baseline setup after checking the images already in `SourceArt/ConceptArt`.
 
+### Approved playable boundary
+
+Build one enclosed woodland valley matching the visible clearing. Worn dirt paths curl around the mossy banks and meet the mushroom crossing, with a clear approach to Pip’s door. Use dense shrubbery backed by roots and rising ground along the perimeter. Leave readable openings only where the player can travel. Check sightlines and boundary collision at running, jumping, and swinging height. Fit traversal beats inside this footprint only where they serve the pictured clearing.
+
 ## How to follow progress
 
 A checked task means its stated result has been verified. A checked user review means the user has accepted that checkpoint. As work advances, update the current milestone, check completed items, and record evidence or requested changes in the log below. At each review, present the relevant screenshots or playtest and wait for feedback before building on that decision.
@@ -23,7 +27,7 @@ A checked task means its stated result has been verified. A checked user review 
 - [x] Record the supplied GitHub destination and the approved visual direction.
 - [x] **User review 0 — direction.** Confirm the composition above and flag any existing Act 1 traversal or Act 2 quest beats that must keep their location or order.
 - [x] After Antigravity’s final save and handoff, inspect current local and remote Git state. Preserve any existing remote history. Set up Git LFS and ignore generated Unreal caches, autosaves, and Blender backup files.
-- [ ] Capture the original project descriptor, config, Content (including external actor/object packages), and SourceArt. Verify representative LFS files, the level’s actor packages, and a clean working tree. Record the baseline commit and remote sync status here. Create a working branch before editing.
+- [x] Capture the original project descriptor, config, Content (including external actor/object packages), and SourceArt. Verify representative LFS files, the level’s actor packages, and a clean working tree. Record the baseline commit and remote sync status here. Create a working branch before editing.
 - [ ] Open `Lvl_FirstSteps` explicitly. Capture the current overview and player view, then walk the route once. Record working traversal and quest behavior for comparison.
 
 ## 1 · Settle the whole map layout
@@ -65,3 +69,5 @@ Use the existing forest Blender kits as starting material. For each piece, inspe
 | 2026-11-24 | Read-only project inventory completed. Visual target, layout-first approach, and GitHub destination recorded. | User review 0, then baseline after handoff. |
 
 | 2026-11-24 | User approved the direction and confirmed Antigravity finished and saved. Remote had no refs before setup. | Establish baseline and start layout study. |
+
+| 2026-11-24 | Local baseline 36a6be9 verified with 596 LFS files and 89 First Steps actor packages. Created local layout branch. User confirmed the pictured valley, dirt paths, and shrub boundaries. | Remote upload pending approval. Capture in-engine views for layout review. |
