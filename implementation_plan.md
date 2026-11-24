@@ -9,25 +9,25 @@
 
 ## What we are building
 
-From ChibiRunner’s starting bank, four glossy amber mushrooms draw a diagonal across a shallow creek to Pip’s acorn cottage. A moss-covered root arch frames the creek on the left. The cottage nestles into the roots of a much larger tree on the right. Warm windows, a peach lantern, and patches of afternoon sun lead the eye toward Pip. Preserve that relationship from both the elevated overview and the playable camera.
+From ChibiRunner’s starting bank, four broad, veined lotus leaves draw a diagonal across a shallow creek to Pip’s acorn cottage. A moss-covered root arch frames the creek on the left. The cottage nestles into the roots of a much larger tree on the right. Warm windows, a peach lantern, and patches of afternoon sun lead the eye toward Pip. Preserve that relationship from both the elevated overview and the playable camera.
 
-The ground should feel soft and continuous. Moss wraps banks, stones, and roots wherever traffic has spared it. The dirt path wears through that cover. Bark ridges catch light, pebbles cast contact shadows, water reveals its bed, and mushroom rims transmit a little sunlight. Those small changes in shape, material, and shadow are what give the reference its depth. A possible later interaction is a temporary, slowly recovering depression when ChibiRunner steps into moss.
+The ground should feel soft and continuous. Moss wraps banks, stones, and roots wherever traffic has spared it. The dirt path wears through that cover. Bark ridges catch light, pebbles cast contact shadows, water reveals its bed, and lotus rims transmit a little sunlight. Those small changes in shape, material, and shadow are what give the reference its depth. A possible later interaction is a temporary, slowly recovering depression when ChibiRunner steps into moss.
 
 **Primary references** The user-selected “Bring the lantern to Pip” gameplay image, FirstSteps.png, FirstSteps Top Down.png, and FirstSteps 3 Angle.png in the ConceptArt folder.
 
 ### Approved playable boundary
 
-Build one enclosed woodland valley matching the visible clearing. Worn dirt paths curl around the mossy banks and meet the mushroom crossing, with a clear approach to Pip’s door. Use dense shrubbery backed by roots and rising ground along the perimeter. Leave readable openings only where the player can travel. Check sightlines and boundary collision at running, jumping, and swinging height. Fit traversal beats inside this footprint only where they serve the pictured clearing.
+Build one enclosed woodland valley matching the visible clearing. Worn dirt paths curl around the mossy banks and meet the lotus crossing, with a clear approach to Pip’s door. Use dense shrubbery backed by roots and rising ground along the perimeter. Leave readable openings only where the player can travel. Check sightlines and boundary collision at running, jumping, and swinging height. Fit traversal beats inside this footprint only where they serve the pictured clearing.
 
 ### Left-bank route and bridges
 
-Follow the reference from the near bank. A worn dirt path curves left along the water and climbs to the pale fallen birch on the upper-left trail. The log spans a small break in that trail and is playable as a balance crossing. Closer to the mushroom crossing, the large moss-covered root arches over the creek. Its crown is a second playable bridge, with walkable approaches at both ends and an open view of water beneath the arch. Keep the two crossings distinct in silhouette and position. The four amber mushrooms remain the direct crossing toward Pip.
+Follow the reference from the near bank. A worn dirt path curves left along the water and climbs to the pale fallen birch on the upper-left trail. The log spans a small break in that trail and is playable as a balance crossing. Closer to the lotus crossing, the large moss-covered root arches over the creek. Its crown is a second playable bridge, with walkable approaches at both ends and an open view of water beneath the arch. Keep the two crossings distinct in silhouette and position. Four lotus leaves on emergent stems mark the direct crossing toward Pip.
 
 - [ ] At user review 1, compare the overview with the reference for the left path’s curve, upstream birch span, root arch, and open water beneath it. Walk both bridges from their dirt-path approaches and check their exits at player height.
 
 ### Creek depth and wading
 
-Use ChibiRunner’s in-game body as the scale reference. Beneath the mushroom crossing, shape the creek bed so that after a missed jump she can plant her feet with the waterline between her waist and chest. Grade the bed up toward the banks so she can wade back onto the path. Keep the clear water and visible pebbles of the reference.
+Use ChibiRunner’s in-game body as the scale reference. Beneath the lotus crossing, shape the creek bed so that after a missed jump she can plant her feet with the waterline between her waist and chest. Grade the bed up toward the banks so she can wade back onto the path. Keep the clear water and visible pebbles of the reference.
 
 - [x] Test the creek beside the middle mushrooms. Drop ChibiRunner onto the bed, capture the waterline and wading pose, then walk back to dry ground.
 - [x] Traversal pass — have ChibiRunner move through this depth with grounded wading steps and her arms held out to either side for balance. Check the transition from landing to wading and back to normal movement on the bank.
@@ -88,7 +88,7 @@ Use the existing forest Blender kits as starting material. For each piece, inspe
 
 - [ ] **Tree and arch.** Shape the cottage tree’s trunk flare, the arch opening, and the roots entering the banks. Place the canopy to frame the crossing and let light reach the route. **User review 3A** — approve tree silhouettes, bark scale, and cast shadows.
 - [ ] **Cottage and Pip’s clearing.** Seat the acorn cottage against the roots. Tune roof scales, window depth, doorstep, fence, and lantern placement from the approach camera. **User review 3B** — approve the cottage and its relationship to Pip and the tree.
-- [ ] **Mushrooms.** Shape the four readable landing caps and pale stems. Tune roughness, rim translucency, cap highlights, and stem shadows under the scene light. Verify perch and bounce variants individually. **User review 3C** — approve the amber finish, lighting, and landing readability.
+- [ ] **Lotus crossing.** Four veined leaves now mark the perch route across the creek. **User review 3C** — assess the landing silhouettes and route readability from the starting bank.
 - [ ] **Flora.** Build a small reusable set of strawberry plants, bellflowers, wildflowers, and moss tufts. Check leaf thickness, petal translucency, and shadows before placing clusters around the hand-authored landmarks. **User review 3D** — approve a dressed bank from player height before wider scattering.
 
 ## 4 · Integrate lighting, movement, and final detail
@@ -150,3 +150,4 @@ Use the existing forest Blender kits as starting material. For each piece, inspe
 | 2026-11-24 | Reviewed all nine painted foliage types and updated seven across the valley. Verified 1,633 painted instances in Play-in-Editor, including the approved strawberry and bellflower meshes. | Review the [crossing](SourceArt/LayoutReview/painted_valley_eye.jpg) and [birch path](SourceArt/LayoutReview/painted_birch_eye.jpg) at runner height. |
 | 2026-11-24 | Added leaf-aligned vein color and relief to the painted understory, strawberry leaves, bellflower leaves and grass. Verified the three foliage materials and all 1,633 painted instances in Play-in-Editor. | Review [leaf detail](SourceArt/LayoutReview/veined_foliage_detail.jpg) and [runner-height crossing](SourceArt/LayoutReview/veined_foliage_eye.jpg). |
 | 2026-11-24 | Added tapered exterior folds to the arching bellflowers and mixed flower clusters. | Review [the petal folds](SourceArt/LayoutReview/bellflower_folds_detail.jpg) and [the crossing at runner height](SourceArt/LayoutReview/bellflower_folds_eye.jpg). |
+| 2026-11-24 | Replaced the four creek perch visuals with lotus leaves. Reloaded the level and tested all four successive perches and the landing on the far bank. | Review the [lotus crossing](SourceArt/LayoutReview/lotus_crossing_eye.jpg) and [near leaf](SourceArt/LayoutReview/lotus_crossing_detail.jpg). |

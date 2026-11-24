@@ -60,3 +60,4 @@ For the dirt path, keep the ochre faces smooth with broad gradients. Put the str
 Painted foliage follows the hand-placed planting palette. Pair rounded ivory or violet blooms with clover and arching grass, build shrubs from softly folded leaves, and nestle warm pebbles into cushion moss.
 Give broad leaves a tapering midrib with curved side veins and grass a few lengthwise ridges. Use gentle color variation and shallow normal-map relief so the veins catch grazing light. Keep the waxy highlight broad and the backlit edges yellow-green.
 Bellflower cups have five shallow, curved folds. A muted lavender shadow follows each groove and fades before the rolled lip.
+The four creek landings are emergent lotus leaves on slender stems. Give each a broad landing surface, a softly rolled edge, a central dimple and radial veins. Reserve the amber mushroom models for woodland ground.
