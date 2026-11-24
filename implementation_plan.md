@@ -1,7 +1,7 @@
 # Strawberry Hollow · Fairy Grotto implementation plan
 
 **Level** `Lvl_FirstSteps` in the Unreal Parkour project  
-**Current milestone** Layout review on `level/first-steps-layout`. Art development is paused for a new style direction. Local Git baseline is 36a6be9. The user approved publishing the baseline and layout checkpoint to GitHub.
+**Current milestone** Revised ravine and mushroom pool ready for layout review on `level/first-steps-layout`. Art development is paused for a new style direction. Local Git baseline is 36a6be9. The user approved publishing the baseline and layout checkpoint to GitHub.
 
 **Next user checkpoint** Review 1 — confirm the clearing footprint, crossing positions, and path from the spawn bank to Pip.
 
@@ -13,7 +13,7 @@ From ChibiRunner’s starting bank, four glossy amber mushrooms draw a diagonal 
 
 The ground should feel soft and continuous. Moss wraps banks, stones, and roots wherever traffic has spared it. The dirt path wears through that cover. Bark ridges catch light, pebbles cast contact shadows, water reveals its bed, and mushroom rims transmit a little sunlight. Those small changes in shape, material, and shadow are what give the reference its depth. A possible later interaction is a temporary, slowly recovering depression when ChibiRunner steps into moss.
 
-**Primary references** The user-selected “Bring the lantern to Pip” gameplay image and the [approved elevated composition](SourceArt/ConceptArt/FirstSteps.png). Preserve both with the project during baseline setup after checking the images already in `SourceArt/ConceptArt`.
+**Primary references** The user-selected “Bring the lantern to Pip” gameplay image, FirstSteps.png, FirstSteps Top Down.png, and FirstSteps 3 Angle.png in the ConceptArt folder.
 
 ### Approved playable boundary
 
@@ -53,7 +53,19 @@ A checked task means its stated result has been verified. A checked user review 
 - [x] Save a repeatable elevated camera and a player-height view. Walk from spawn to Pip, carrying the lantern, and capture the same crossing from both cameras.
 - [ ] **User review 1 — layout lock.** Show the full-map overview, the crossing at player height, and a short route walkthrough. Agree on scale, landmark positions, and route flow before detailed modeling.
 
-### Layout review evidence
+### Revised ravine and pool checkpoint
+
+- [x] Carry the left dirt trail across a side ravine on the starting bank. The birch stays level across a roughly three-metre clearance. The far end turns onto the launch ramp. The zip line crosses the main creek to a dry shelf.
+- [x] Shape the lower pool and narrow its outlet. Refit the existing gravel surface to the river while keeping native Landscape collision beneath the water.
+- [x] Turn the four mushroom landings upstream toward Pip. The first and last cap centers are separated by 3.43 m upstream and 4.55 m across the water. A playable run collected the lantern and delivered it to Pip across all four.
+- [x] Verify a missed crossing can recover. At the downstream pool sample, the waterline was between ChibiRunner’s pelvis and upper spine. Wading speed was 125 cm/s and normal movement returned ashore.
+- [ ] **User review 1** — review the view from spawn, the left turn off the birch, and the shape of the mushroom pool. Art direction remains open.
+
+[Reference and revised Unreal survey](SourceArt/LayoutReview/ravine-and-pool-review.jpg) · [Gameplay view](SourceArt/LayoutReview/ravine-and-pool-gameplay.jpg) · [Both routes in Play-in-Editor](SourceArt/LayoutReview/ravine-and-ford-walkthrough.mp4)
+
+### Earlier layout review evidence
+
+- [x] Compare the new top-down and three-angle concepts with the saved level. The [annotated comparison](SourceArt/LayoutReview/layout-comparison.png) shows the straight creek, long parallel trails, cross-creek birch, and shorter ford approach. Layout review remains open. Proposed first change for review is to shape the upper-left ravine and its birch trail before adjusting the downstream pool and crossings.
 
 - [Playable reference angle](SourceArt/LayoutReview/gameplay-valley.png) and [bank-height view](SourceArt/LayoutReview/gameplay-approach.png). The named cameras in the Outliner are `Valley_ReferenceOverview` and `Valley_PlayerBank`.
 - [Overhead layout survey](SourceArt/LayoutReview/valley-overview.png). Overhead trees were hidden for this editor capture and restored afterward.
@@ -97,3 +109,4 @@ Use the existing forest Blender kits as starting material. For each piece, inspe
 | 2026-11-24 | User confirmed the left dirt trail, pale birch balance bridge, and walkable root arch as distinct features of the reference layout. | Include both crossings in layout review 1. |
 | 2026-11-24 | Captured baseline views, relocated the spawn and lantern to the near bank, added a playable upstream birch and separated the arch from the cottage sightline. Built a Landscape path mask and creek bed. In PIE at (135, 970), water Z −8.5 cm fell between pelvis −23.2 and upper spine −5.0 while grounded. | Finish terrain dressing and bridge / quest / shore tests. |
 | 2026-11-24 | User requested the layout check-in ahead of final art. Saved a playable camera comparison and a continuous lantern-delivery recording; verified mushroom, root, birch and water routes. First Steps is set as the editor and game default map. | Review scale, paths and crossing positions; revisit visual style separately. |
+| 2026-11-24 | Revised the left trail, birch ravine, zip-line launch, pool outline, and upstream mushroom route. Checked the saved level after reopening. | Review the revised layout before the art pass. |
