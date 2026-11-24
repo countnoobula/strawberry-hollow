@@ -49,7 +49,7 @@ A checked task means its stated result has been verified. A checked user review 
 
 - [x] Map the current spawn, lantern pickup, creek, mushroom crossing, cottage, approach route, and optional traversal. Identify what the player can see at each decision point.
 - [x] Block out the full route with simple shapes and existing actors. Establish stream direction, bank heights, path widths, crossings, main tree masses, and the space around the cottage. Keep the four caps and the arch readable in silhouette.
-- [ ] Fit the birch, rope line, zip line, and pendulum swing around the terrain. Check approach room, release arcs, landing visibility, and a way back after a missed jump. Confirm which mechanics are working after handoff.
+- [x] Fit the birch, rope line, zip line, and pendulum swing around the terrain. Check approach room, release arcs, landing visibility, and a way back after a missed jump. Confirm which mechanics are working after handoff.
 - [x] Save a repeatable elevated camera and a player-height view. Walk from spawn to Pip, carrying the lantern, and capture the same crossing from both cameras.
 - [ ] **User review 1 — layout lock.** Show the full-map overview, the crossing at player height, and a short route walkthrough. Agree on scale, landmark positions, and route flow before detailed modeling.
 
@@ -60,6 +60,7 @@ A checked task means its stated result has been verified. A checked user review 
 - [Continuous playtest from spawn to Pip](SourceArt/LayoutReview/birch-walkthrough.mp4). ChibiRunner collected the lantern, followed the left dirt trail, crossed the upstream birch, and delivered it at the cottage. The route needed more clearance where the upper landing shelf met the far-bank path.
 - The root crown was walked in both directions. Near the center, the walk surface rises approximately 3.14 m above the level origin. The four-mushroom route was tested with four successive perch states and a landing on the far-bank Landscape.
 - [Wading test at the crossing](SourceArt/LayoutReview/gameplay-wading.png). At the sample point, the creek surface sits between the pelvis and upper spine. The grounded wade runs at 125 cm/s and returns to ordinary movement on shore. Splash rings now have no pawn collision.
+- The silk zip and crawl vine were tested in an isolated copy with the same placements now saved in the live level. Both allow a running jump onto the line, full travel, automatic release, and a dry landing on the cliff shelf.
 - The right-hand pendulum was verified as a short cottage-side swing with a dry-bank landing. The art currently placed in the level is provisional. The separately authored moss-footstep prototype is parked for the new art direction.
 
 ## 2 · Establish the ground, creek, and paths
