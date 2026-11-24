@@ -62,3 +62,4 @@ Give broad leaves a tapering midrib with curved side veins and grass a few lengt
 Bellflower cups have five shallow, curved folds. A muted lavender shadow follows each groove and fades before the rolled lip.
 The four creek landings are emergent lotus leaves on slender stems. Give each a broad landing surface, a softly rolled edge, a central dimple and radial veins. Reserve the amber mushroom models for woodland ground.
 A lotus leaf settles up to 3.5 cm under a perched runner. Her perch follows the leaf. On release the stem lifts it more slowly toward its resting height, without oscillation.
+When a lotus takes weight, one soft ripple expands from the stem at the creek surface and fades over 1.35 seconds. Holding a perch keeps the water quiet after that first ring.
