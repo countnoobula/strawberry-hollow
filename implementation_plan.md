@@ -1,7 +1,7 @@
 # Strawberry Hollow · Fairy Grotto implementation plan
 
 **Level** `Lvl_FirstSteps` in the Unreal Parkour project  
-**Current milestone** Layout review on `level/first-steps-layout`. Art development is paused for a new style direction. Local Git baseline is 36a6be9. GitHub upload awaits explicit approval.
+**Current milestone** Layout review on `level/first-steps-layout`. Art development is paused for a new style direction. Local Git baseline is 36a6be9. The user approved publishing the baseline and layout checkpoint to GitHub.
 
 **Next user checkpoint** Review 1 — confirm the clearing footprint, crossing positions, and path from the spawn bank to Pip.
 
