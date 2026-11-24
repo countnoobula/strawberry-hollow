@@ -1,6 +1,7 @@
 """Generate Strawberry Hollow's moss-fringed creekstone kit. Run with Blender in background."""
 import math
 import random
+import sys
 from pathlib import Path
 import bpy
 import numpy as np
@@ -65,14 +66,21 @@ def make_surface(kind):
     broad=noise(15,3,3)
     drift=noise(23,6,7)
     if kind=='Creekstone':
-        # Gentle lilac-grey shadows warm toward sandstone. Broad, curved bedding
-        # has soft borders. The smoothed stone silhouette supplies deeper creases.
+        # Warm neutral cobble. Very shallow bedding breaks into broad patches
+        # of subtly different weathering across the same stone face.
         phase=2*pi*(yy*2+.16*np.sin(2*pi*xx)+.50*(broad-.5))
         band=(.5+.5*np.cos(phase))**5
-        light=np.clip(.24+.35*broad+.35*drift+.06*np.sin(phase)-.09*band,0,1)
-        base=np.array([.44,.42,.48])+(np.array([.72,.69,.65])-np.array([.44,.42,.48]))*light[:,:,None]
-        h=.23*broad+.18*drift-.055*band
-        rough=.78+.07*drift
+        weather=noise(322,15,13)
+        light=np.clip(.16+.40*broad+.30*drift+.18*weather+.018*np.sin(phase)-.026*band,0,1)
+        shadow=np.array([.405,.385,.365])
+        base=shadow+(np.array([.64,.615,.58])-shadow)*light[:,:,None]
+        base+=(drift-.5)[:,:,None]*np.array([.020,.007,-.009])
+        mineral=.73*noise(215,5,5)+.27*noise(217,11,9)
+        warm_patch=np.clip((mineral-.52)/.33,0,1)
+        warm_patch=warm_patch*warm_patch*(3-2*warm_patch)
+        base-=warm_patch[:,:,None]*np.array([.043,.066,.083])
+        h=.23*broad+.15*drift+.13*weather-.018*band
+        rough=.77+.06*drift+.045*weather
     else:
         # Broad fern-to-sage color remains legible as the smaller shoots mip out.
         clumps=cushion_heads(513,30,33)
@@ -106,6 +114,34 @@ def make_surface(kind):
     return mat
 
 rock=make_surface('Creekstone');moss=make_surface('Moss')
+
+def terrain_moss_material():
+    # Match the terrain in sRGB swatches, using the shared moss nap for relief.
+    source=OUT.parent/'ValleyGround'/'T_MossGround01_Color.png'
+    image=bpy.data.images.load(str(source));image.colorspace_settings.name='Non-Color'
+    pixels=np.empty(len(image.pixels),np.float32);image.pixels.foreach_get(pixels)
+    rgb=pixels.reshape(-1,4)[::7,:3]
+    luminance=rgb@np.array([.2126,.7152,.0722])
+    levels=np.array([5,20,40,60,80,95])
+    palette=[]
+    for level in levels:
+        low,high=np.percentile(luminance,[level-2,level+2])
+        palette.append(rgb[(luminance>=low)&(luminance<=high)].mean(axis=0))
+    bpy.data.images.remove(image)
+    nap=.68*cushion_heads(513,30,33)+.32*cushion_heads(746,82,79)
+    shade=.55*noise(15,3,3)+.28*noise(23,6,7)+.12*noise(97,12,10)+.12*nap
+    ranks=np.interp(shade,np.percentile(shade,levels),levels)
+    palette=np.array(palette)
+    color=np.stack([np.interp(ranks,levels,col) for col in palette.T],axis=-1)
+    diffuse=texture('T_ValleyBoulderMoss_BaseColor',color,False)
+    mat=moss.copy();mat.name='M_ValleyBoulderMoss'
+    mat.diffuse_color=tuple(color.mean(axis=(0,1)))+(1,)
+    for node in mat.node_tree.nodes:
+        if node.type=='TEX_IMAGE' and node.image.name=='T_ValleyMoss_BaseColor.png':
+            node.image=diffuse
+    return mat
+
+boulder_moss=terrain_moss_material()
 tipmat=bpy.data.materials.new("M_ValleyMossTips")
 tipmat.diffuse_color=(.36,.54,.18,1);tipmat.use_nodes=True
 b=tipmat.node_tree.nodes.get("Principled BSDF")
@@ -118,7 +154,7 @@ BOUNDS={
     'SM_Valley_MossCreekBoulder':((-.5093056,-.3984329,-.1053338),(.5789441,.4471750,.6134803)),
 }
 
-def create(name,w,depth,h,seed,rounded,fringe):
+def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
     rng=random.Random(seed);ph=[rng.random()*2*pi for _ in range(9)]
     n=112;verts=[];faces=[];indices=[];faceuv=[]
     def ring(rad,zf,mode):
@@ -202,6 +238,14 @@ def create(name,w,depth,h,seed,rounded,fringe):
     skin=[(.925,.816,1,0),(.969,.801,1,.02),(.994,.817,.99,.14),
           (1.000,.841,.93,.32),(.996,.868,.78,.50),(.990,.892,.59,.65),
           (.980,.913,.38,.79),(.962,.931,.19,.91)]
+    if creeping:
+        # Extra loops allow the moss to follow the narrow ledges in the stone.
+        interpolated=[]
+        for a,b in zip(skin,skin[1:]):
+            for step in range(5):
+                interpolated.append(tuple(x+(y-x)*step/5 for x,y in zip(a,b)))
+        skin=interpolated+[skin[-1]]
+    shoulder=len(skin)
     for j in range(39):
         t=j/39
         skin.append((.94*(1-t),.947+.035*sin(t*pi*.75),0,1))
@@ -247,7 +291,7 @@ def create(name,w,depth,h,seed,rounded,fringe):
 
     # Only reshape the new moss to respect the original placement envelope.
     # All original stone vertices, the pivot, local axes and scale are retained.
-    lo,hi=BOUNDS[name]
+    lo,hi=BOUNDS['SM_Valley_MossCreekBoulder' if creeping else name]
     xyz=np.array(verts[first_moss:])
     for axis in range(3):
         if axis==2:
@@ -271,10 +315,45 @@ def create(name,w,depth,h,seed,rounded,fringe):
             floor=hit.z+.013*h
             blend=max(.019*h-abs(z-floor),0)
             verts[i]=(x,y,min(hi[2],max(floor,z)+blend*blend/(.076*h)))
+    if creeping:
+        # Long lobes grow directly out of the same continuous cushion. Their
+        # taper and subtle sideways drift differ around the stone. The prominent
+        # lobe faces local +Y in Blender, corresponding to the creek approach.
+        tongues=[(91,.34,.195,.07),(56,.21,.108,-.03),(-72,.29,.214,-.12),
+                 (-151,.19,.17,.08),(153,.15,.108,-.07)]
+        for ring_number,ring_ids in enumerate(moss_rings[:shoulder]):
+            level=ring_number/5
+            t=min(1,max(0,(level-.8)/6.2))
+            profile=1-t*t*(3-2*t)
+            for i,idx in enumerate(ring_ids):
+                a=2*pi*i/n
+                pull=0
+                for bearing,width,length,drift in tongues:
+                    target=math.radians(bearing)+drift*profile
+                    delta=math.atan2(sin(a-target),cos(a-target))
+                    q=abs(delta)/width
+                    if q<1:
+                        pull=max(pull,length*(1-q*q)**1.75)
+                x,y,z=verts[idx]
+                direction=Vector((x,y,0)).normalized()
+                new_z=z-profile*pull
+                origin=direction*2+Vector((0,0,new_z))
+                contact=stone_surface.ray_cast(origin,-direction)[0]
+                if contact is None: continue
+                edge_padding=np.interp(level,[0,1,2,3,4,5,6,7],
+                    [-.003,.006,.011,.015,.019,.019,.014,.010])
+                surface_radius=math.hypot(contact.x,contact.y)
+                # Keep the original cap's outward fullness where the creep
+                # attaches. Conform progressively to the face further down.
+                influence=min(1,pull*profile/.12)
+                radius=(1-influence)*math.hypot(x,y)+influence*(surface_radius+edge_padding)
+                protected=max(radius,surface_radius+edge_padding)
+                correction=1-min(1,max(0,(level-4.5)/2.5))
+                radius=radius+(protected-radius)*correction
+                verts[idx]=(direction.x*radius,direction.y*radius,new_z)
     # Unfold the turned lip into the same UV island as its crown. Each spoke
     # spends exactly as much UV distance as it travels over the finished mesh.
     # A horizontal top projection alone collapses the nap on vertical surfaces.
-    shoulder=8
     anchor=moss_rings[shoulder]
     rim_uv={}
     for i,idx in enumerate(anchor):
@@ -295,7 +374,34 @@ def create(name,w,depth,h,seed,rounded,fringe):
             previous=point
     for face in range(moss_rim_face_start,moss_rim_face_start+shoulder*n):
         faceuv[face]=[rim_uv[idx] for idx in faces[face]]
-    mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.materials.append(rock);mesh.materials.append(moss);mesh.materials.append(tipmat)
+    if creeping:
+        # The much longer tongue has enough side-to-side slope to shear a
+        # radial projection. Unroll this variant's skirt along its perimeter.
+        # V follows the arc down from a world-height datum, so nearby spokes
+        # retain similar world-space density even where one extends further.
+        seam=3*n//4
+        lengths=[0.]
+        for k in range(n):
+            i=(seam+k)%n;j=(i+1)%n
+            a=Vector(verts[anchor[i]]);b=Vector(verts[anchor[j]])
+            lengths.append(lengths[-1]+.84*math.hypot(a.x-b.x,a.y-b.y))
+        skirt_v={}
+        for i in range(n):
+            previous=Vector(verts[anchor[i]])
+            v=.84*previous.z
+            skirt_v[anchor[i]]=v
+            for ring in reversed(moss_rings[:shoulder]):
+                idx=ring[i];point=Vector(verts[idx])
+                v-=.84*(point-previous).length
+                skirt_v[idx]=v
+                previous=point
+        for r in range(shoulder):
+            for i in range(n):
+                k=(i-seam)%n
+                face=moss_rim_face_start+r*n+i
+                us=(lengths[k],lengths[k+1],lengths[k+1],lengths[k])
+                faceuv[face]=[(u,skirt_v[idx]) for u,idx in zip(us,faces[face])]
+    mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.materials.append(rock);mesh.materials.append(boulder_moss if creeping else moss);mesh.materials.append(tipmat)
     mesh.update();uv=mesh.uv_layers.new(name='SurfaceUV')
     for poly_,mi,coords in zip(mesh.polygons,indices,faceuv):
         poly_.material_index=mi;poly_.use_smooth=mi!=2
@@ -303,13 +409,20 @@ def create(name,w,depth,h,seed,rounded,fringe):
     obj=bpy.data.objects.new(name,mesh);scene.collection.objects.link(obj)
     for ob in bpy.context.selected_objects:ob.select_set(False)
     obj.select_set(True);bpy.context.view_layer.objects.active=obj
-    bpy.ops.export_scene.fbx(filepath=str(OUT/(name+'.fbx')),use_selection=True,object_types={'MESH'},axis_forward='-Y',axis_up='Z',apply_unit_scale=True,apply_scale_options='FBX_SCALE_NONE',bake_anim=False,add_leaf_bones=False,mesh_smooth_type='FACE',path_mode='RELATIVE')
+    if creeping or '--variant-only' not in sys.argv:
+        bpy.ops.export_scene.fbx(filepath=str(OUT/(name+'.fbx')),use_selection=True,object_types={'MESH'},axis_forward='-Y',axis_up='Z',apply_unit_scale=True,apply_scale_options='FBX_SCALE_NONE',bake_anim=False,add_leaf_bones=False,mesh_smooth_type='FACE',path_mode='RELATIVE')
+    if name=='SM_Valley_MossCreekBoulder':
+        # Existing FBX slot names are a reimport contract. Match the assigned
+        # Unreal material override when presenting the original rock in Blender.
+        mesh.materials[1]=boulder_moss
     print(name,'dimensions',tuple(round(v,3) for v in obj.dimensions),'polys',len(mesh.polygons),flush=True)
     return obj
 
 shelf=create('SM_Valley_MossCliffShelf',4.70,2.00,1.38,153,.70,.23)
 point=create('SM_Valley_MossPromontory',2.8,2.25,1.05,490,.82,.21)
 stone=create('SM_Valley_MossCreekBoulder',1.03,.83,.56,212,.88,.31)
+creeper=create('SM_Valley_CreepingMossBoulder',1.03,.83,.56,212,.88,.31,creeping=True)
+creeper.location=(-1.15,-1.8,0);creeper.rotation_euler.z=math.pi
 shelf.location=(-2.5,0,0);point.location=(2,0,0);stone.location=(.4,-1.8,0)
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.file.pack_all()
