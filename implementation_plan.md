@@ -1,9 +1,9 @@
 # Strawberry Hollow · Fairy Grotto implementation plan
 
 **Level** `Lvl_FirstSteps` in the Unreal Parkour project  
-**Current milestone** Revised ravine and mushroom pool ready for layout review on `level/first-steps-layout`. Art development is paused for a new style direction. Local Git baseline is 36a6be9. The user approved publishing the baseline and layout checkpoint to GitHub.
+**Current milestone** Revised ravine and mushroom pool ready for layout review on `level/first-steps-layout`. The first playable clover and satin-grass patch is ready for review in [design.md](design.md). Local Git baseline is 36a6be9. The user approved publishing the baseline and layout checkpoint to GitHub.
 
-**Next user checkpoint** Review 1 — confirm the clearing footprint, crossing positions, and path from the spawn bank to Pip.
+**Next user checkpoint** Review the clover and grass at runner height beside the first mushroom. The revised layout review remains open.
 
 **Revision tracking destination** [countnoobula/strawberry-hollow](https://github.com/countnoobula/strawberry-hollow)
 
@@ -110,3 +110,4 @@ Use the existing forest Blender kits as starting material. For each piece, inspe
 | 2026-11-24 | Captured baseline views, relocated the spawn and lantern to the near bank, added a playable upstream birch and separated the arch from the cottage sightline. Built a Landscape path mask and creek bed. In PIE at (135, 970), water Z −8.5 cm fell between pelvis −23.2 and upper spine −5.0 while grounded. | Finish terrain dressing and bridge / quest / shore tests. |
 | 2026-11-24 | User requested the layout check-in ahead of final art. Saved a playable camera comparison and a continuous lantern-delivery recording; verified mushroom, root, birch and water routes. First Steps is set as the editor and game default map. | Review scale, paths and crossing positions; revisit visual style separately. |
 | 2026-11-24 | Revised the left trail, birch ravine, zip-line launch, pool outline, and upstream mushroom route. Checked the saved level after reopening. | Review the revised layout before the art pass. |
+| 2026-11-24 | Approved the concept clover thickness and built one near-bank foliage trial. Recorded it at runner height and verified lantern delivery over the four mushrooms. | Review the patch in motion before wider placement. |
