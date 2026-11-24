@@ -66,49 +66,31 @@ def make_surface(kind):
     broad=noise(15,3,3)
     drift=noise(23,6,7)
     if kind=='Creekstone':
-        # A skewed periodic fracture field gives the cliff broad, sloping planes.
-        # Differences between the nearest two distances locate chipped joints.
-        wx=.022*(noise(241,7,6)-.5)+.005*(noise(207,25,21)-.5)
-        wy=.027*(noise(203,5,7)-.5)+.006*(noise(205,18,23)-.5)
-        # Wrap world UVs, rather than the skewed lattice, at each tile boundary.
-        rng=np.random.default_rng(272)
-        centers=[]
-        for j in range(4):
-            for i in range(3):
-                centers.append(((i+rng.uniform(.12,.88))/3,(j+rng.uniform(.12,.88))/4,
-                                rng.uniform(-.8,.8),rng.uniform(-.8,.8),rng.uniform(-1,1)))
-        first=np.full_like(xx,20);second=first.copy()
-        plane=np.zeros_like(xx);tone=plane.copy()
-        for cx,cy,sx,sy,value in centers:
-            ux=(xx+wx-cx+.5)%1-.5
-            uy=(yy+wy-cy+.5)%1-.5
-            a=3*ux+uy;b=4*uy-ux
-            dist=np.sqrt(a*a+b*b)
-            closer=dist<first
-            second=np.minimum(second,np.where(closer,first,dist))
-            first=np.minimum(first,dist)
-            plane=np.where(closer,.017*(sx*a+sy*b),plane)
-            tone=np.where(closer,value,tone)
-        gap=second-first
-        bevel=np.clip(gap/.115,0,1)
-        bevel=bevel*bevel*(3-2*bevel)
-        exposure=np.clip((.7*noise(223,4,5)+.3*drift-.22)/.48,0,1)
-        joint=(1-bevel)*exposure
-        # One broken shoulder is broader than its opposing lip. Small joints
-        # peter out where the surface remains intact across the same plane.
-        chips=np.maximum(0,1-gap/.32)**2*np.clip(tone+.4,0,1)*exposure
-        quiet=np.clip((noise(342,5,5)-.30)/.40,0,1)
-        joint*=.28+.72*quiet
+        # Each short ledge dies away inside a continuous field of weathered stone.
+        # The broad shoulder on one side catches sunlight above the narrow nick.
+        bend=.012*(noise(241,7,6)-.5)+.004*(noise(207,25,21)-.5)
+        joint=np.zeros_like(xx)
+        shoulder=np.zeros_like(xx)
+        for cx,cy,angle,half_length in ((.23,.19,24,.185),(.74,.60,57,.13),(.35,.81,-15,.10)):
+            ux=(xx-cx+.5)%1-.5
+            uy=(yy-cy+.5)%1-.5
+            c,s=cos(math.radians(angle)),sin(math.radians(angle))
+            along=ux*c+uy*s
+            across=-ux*s+uy*c+bend+.09*np.abs(along)
+            fade=np.clip(1-(along/half_length)**2,0,1)**1.5
+            joint+=fade*np.exp(-(across/.007)**2)
+            rise=np.clip(across/.016,0,1)
+            shoulder+=fade*rise*rise*(3-2*rise)*np.exp(-(across/.062)**2)
         grain=noise(217,95,103)-.5
         grit=noise(287,230,241)-.5
         flakes=noise(295,26,31)-.5
         # Mineral variation warms worn faces and cools the deepest cuts.
         mineral=noise(303,10,9)-.5
         light=.50+.40*(broad-.5)+.31*(drift-.5)+.21*flakes+.086*grain+.04*grit
-        light+=.14*tone*bevel-.43*joint-.11*chips
+        light+=.060*shoulder-.27*joint
         base=np.array([.344,.335,.316])+light[:,:,None]*np.array([.32,.302,.273])
         base+=mineral[:,:,None]*np.array([.056,.028,-.010])
-        height=plane*bevel-.009*joint-.007*chips+.0045*flakes+.0010*grain+.00042*grit
+        height=.006*shoulder-.005*joint+.012*(broad-.5)+.006*(drift-.5)+.0045*flakes+.0010*grain+.00042*grit
         # Central differences downstream expect height expressed in texel units.
         h=height*size/7
         rough=np.clip(.87+.08*joint+.08*flakes+.055*grain,.75,.97)
@@ -187,7 +169,8 @@ BOUNDS={
 
 def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
     rng=random.Random(seed);ph=[rng.random()*2*pi for _ in range(9)]
-    n=112;verts=[];faces=[];indices=[];faceuv=[]
+    n=336 if creeping else 112
+    verts=[];faces=[];indices=[];faceuv=[]
     def ring(rad,zf,mode):
         rr=[]
         for i in range(n):
@@ -217,7 +200,43 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
             x0=i/n*pi*(w+depth)*.5; x1=(i+1)/n*pi*(w+depth)*.5
             poly(ids,mi,[(x0,verts[ids[0]][2]),(x1,verts[ids[1]][2]),(x1,verts[ids[2]][2]),(x0,verts[ids[3]][2])])
     layers=[(.72,-.18),(.94,.06),(1.00,.22),(.993,.37),(.977,.39),(.994,.41),(1.009,.51),(.985,.57),(.979,.58),(.996,.6),(.969,.74),(.945,.86),(.83,.95)]
+    if creeping:
+        # Replace the layered sides with a single continuous, weathered body.
+        # The crown and high lip retain their seats beneath the original moss.
+        heights=np.linspace(-.18,.95,26)
+        key_z=[-.18,.025,.24,.52,.70,.86,.95]
+        key_r=[.72,.91,.985,.99,.974,.945,.83]
+        layers=[(np.interp(z,key_z,key_r),z) for z in heights]
     rings=[ring(r,z,'rock') for r,z in layers]
+    if creeping:
+        def smooth(a,b,x):
+            t=max(0,min(1,(x-a)/(b-a)))
+            return t*t*(3-2*t)
+        planes=[(-.69,.68,.20,.377),(.20,.94,.15,.388),
+                (.78,.32,.78,.694),(-.15,.80,-.68,.213),(.91,-.18,-.37,.552)]
+        for ring_ids,(_,zf) in zip(rings,layers):
+            for idx in ring_ids:
+                x,y,z=verts[idx]
+                th=math.atan2(y/depth,x/w)
+                # One broad, off-center shoulder projects past the moss skirt.
+                # Its crown slopes across the stone rather than forming a ledge
+                # at one common elevation around the boulder.
+                heading=max(0,cos(th-.30))
+                shoulder_top=.56+.14*sin(th+.11)
+                lobe=.225*heading**3*smooth(-.14,.18,zf)*(1-smooth(shoulder_top-.16,shoulder_top+.17,zf))
+                axis=Vector((x,y)).normalized()
+                x+=axis.x*lobe;y+=axis.y*lobe
+                radius=math.hypot(x,y)
+                ux,uy=x/radius,y/radius
+                for nx,ny,nz,distance in planes:
+                    facing=nx*ux+ny*uy
+                    if facing<=0: continue
+                    limit=(distance-nz*z)/facing
+                    # A narrow, rounded arris connects broad flat fracture faces.
+                    bevel=max(.012-abs(radius-limit),0)
+                    cut=min(radius,limit)-bevel*bevel/.048
+                    radius+=(cut-radius)*(1-smooth(.61,.87,zf))
+                verts[idx]=(ux*radius,uy*radius,z)
     poly(rings[0][::-1],0,planar(rings[0][::-1]))
     for lo,hi in zip(rings,rings[1:]):side(lo,hi,0)
     inset=ring(.50,.80,'rock')
@@ -229,6 +248,7 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
     # the largest pillows turning over the stone edge and shadowing the face.
     first_moss=len(verts)
     stone_surface=BVHTree.FromPolygons(verts,faces)
+    n=112
     pads=[]
     for row in range(4):
         count=max(3,round((1-row*.27)*(.64*w+.36*depth)*7))
@@ -370,7 +390,7 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
                 new_z=z-profile*pull
                 origin=direction*2+Vector((0,0,new_z))
                 contact=stone_surface.ray_cast(origin,-direction)[0]
-                if contact is None: continue
+                if contact is None or contact.dot(direction)<=0: continue
                 edge_padding=np.interp(level,[0,1,2,3,4,5,6,7],
                     [-.003,.006,.011,.015,.019,.019,.014,.010])
                 surface_radius=math.hypot(contact.x,contact.y)
@@ -381,6 +401,10 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False):
                 protected=max(radius,surface_radius+edge_padding)
                 correction=1-min(1,max(0,(level-4.5)/2.5))
                 radius=radius+(protected-radius)*correction
+                # The lower skin follows freshly cut faces and stays seated at
+                # its foot. Gradually release this constraint into the crown.
+                limit=surface_radius+max(0,edge_padding)+.009
+                radius+=(min(radius,limit)-radius)*(1-smooth(3.6,6.2,level))
                 verts[idx]=(direction.x*radius,direction.y*radius,new_z)
     # Unfold the turned lip into the same UV island as its crown. Each spoke
     # spends exactly as much UV distance as it travels over the finished mesh.
