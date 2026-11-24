@@ -52,3 +52,4 @@ A close-up 3D art-direction still of one path edge in ChibiRunner’s Fairy Grot
 The mushroom-crossing mix of arching grass and full clover is approved. Along the left dirt path, gather them in small groups with exposed moss between them. The last group sits on the shoulder before the birch so the player can see where to step onto the trunk.
 
 The birch cushion moss is approved. The surrounding ground is in review. The current trial uses warm brown earth and a softer green grass base, keeping broad patches of color and dialing back small bright grains and surface bumps.
+Forest foliage should sway sideways in a slow passing breeze. Keep the roots anchored and the flowers, centers and leaves moving together. Give trial blooms clearance from neighboring stems throughout the sway.
