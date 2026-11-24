@@ -55,3 +55,4 @@ The birch cushion moss is approved. The surrounding ground is in review. The cur
 Forest foliage should sway sideways in a slow passing breeze. Keep the roots anchored and the flowers, centers and leaves moving together. Give trial blooms clearance from neighboring stems throughout the sway.
 Bellflowers across First Steps use a bowed green stem with six hanging lavender bells. Each bell has five soft folds and a pale curled rim. Vary the scale of the spray to suit its planting.
 Strawberries use a plump fruit with golden seeds nestled in individual dimples, a bowed stalk, and thick, gently curved leaflets.
+Birch-trail moss should look deep and soft enough to lie on. Broad rounded cushions carry a short, dense green nap, with gentle tonal variation and soft grazing highlights. Keep the dirt-edge lobes and pebble pockets legible.
