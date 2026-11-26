@@ -67,9 +67,9 @@ void AClimbingStation::UpdateNet(float Delta)
     if(!Net) return;
     if(Runner){
         double Weight=0;
-        for(int I=0;I<4;++I) if(Contacts[I].bLocked) Weight+=I<2?.32:.18;
-        for(int I=0;I<4;++I) if(Contacts[I].bLocked && Weight>0){
-            const double Share=(I<2?.32:.18)/Weight;
+        for(int I=0;I<4;++I) Weight+=NetLoadWeight[I]*(I<2?.32:.18);
+        for(int I=0;I<4;++I) if(NetLoadWeight[I]>0 && Weight>0){
+            const double Share=NetLoadWeight[I]*(I<2?.32:.18)/Weight;
             Net->Load(NetContact[I],Share*FVector(-4300,0,-4800));
         }
     }
@@ -124,11 +124,12 @@ FVector AClimbingStation::Anchor(int Limb, FIntPoint Stance) const
         return Grip+FVector(Limb<2?-3:-5,Limb<2?(Limb==0?-2.2f:2.2f):0,Limb<2?1:5);
     }
     int Column = Stance.X + ((Limb % 2) ? 0 : -1);
-    int Row = Stance.Y + (Limb < 2 ? 2 : 0);
+    int Row = Stance.Y + (Limb < 2 ? 2 : -1);
     float Y = 20*Column + 10;
 
     // Wrist sits behind the palm. Ankle sits behind and above the toe.
-    return FVector((bRopeNet ? -19.f : -4.f) - (Limb<2 ? 2.8f : 5.f),Y,16+16*Row+(Limb<2 ? 1.f : 6.f));
+    const float RopeHeight = Row < 0 ? 7.f : 16.f + 16.f * Row;
+    return FVector(-19.f - (Limb<2 ? 2.8f : 5.f),Y,RopeHeight+(Limb<2 ? 1.f : 6.f));
 }
 void AClimbingStation::Mount(ACharacter* Character, const FVector& LocalPosition)
 {
@@ -158,6 +159,13 @@ void AClimbingStation::Mount(ACharacter* Character, const FVector& LocalPosition
     MountController=CastChecked<APlayerController>(Runner->GetController());
     Step=FIntPoint::ZeroValue; Phase=0; NextLead=0;
     for(int I=0;I<4;++I){ Contacts[I].Support=Surface; Contacts[I].LocalPoint=Anchor(I,Cell); Contacts[I].bLocked=true; }
+    if (bRopeNet){
+        NetStance = FVector2D(Cell.X,Cell.Y);
+        Phase = 1.f;
+        Lead = 0;
+        NetSwingFoot = 3;
+        for (int I=0; I<4; ++I) NetReachTarget[I] = Contacts[I].LocalPoint;
+    }
     for(int I=0;I<2;++I){FootGoal[I]=Contacts[2+I].LocalPoint;FootFrom[I]=FootGoal[I];FootPhase[I]=1;}
     MountController->SetIgnoreMoveInput(true);
     Runner->GetCharacterMovement()->StopMovementImmediately();
@@ -213,12 +221,19 @@ void AClimbingStation::Tick(float Delta)
     if(PC->GetPawn()!=Runner || PC->WasInputKeyJustPressed(EKeys::E) || PC->WasInputKeyJustPressed(EKeys::SpaceBar)){Release();return;}
     int Vertical=int(PC->IsInputKeyDown(EKeys::W)||PC->IsInputKeyDown(EKeys::Up))-int(PC->IsInputKeyDown(EKeys::S)||PC->IsInputKeyDown(EKeys::Down));
     int Horizontal=int(PC->IsInputKeyDown(EKeys::D)||PC->IsInputKeyDown(EKeys::Right))-int(PC->IsInputKeyDown(EKeys::A)||PC->IsInputKeyDown(EKeys::Left));
+    if (bRopeNet){
+        FVector2D Stick(PC->GetInputAnalogKeyState(EKeys::Gamepad_LeftX), PC->GetInputAnalogKeyState(EKeys::Gamepad_LeftY));
+        const double Magnitude = Stick.Size();
+        Stick = Stick.GetSafeNormal() * FMath::Clamp((Magnitude-.15)/.85,0.,1.);
+        MoveOnNet((FVector2D(Horizontal,Vertical)+Stick).GetClampedToMaxSize(1.),Delta);
+        ApplyPose(Delta);
+        return;
+    }
     if (Step==FIntPoint::ZeroValue){
-        FIntPoint Request(!Vertical && !bRopeNet ? Horizontal : 0,Vertical);
+        FIntPoint Request(!Vertical ? Horizontal : 0,Vertical);
         FIntPoint Dest=Cell+Request;
         bool Valid=false;
-        if (bRopeNet) Valid=Vertical && Dest.Y>=0 && Dest.Y<=13;
-        else if (Request!=FIntPoint::ZeroValue && Bands.IsValidIndex(Dest.Y+1) && Dest.Y>=0){
+        if (Request!=FIntPoint::ZeroValue && Bands.IsValidIndex(Dest.Y+1) && Dest.Y>=0){
             const auto& Band=Bands[Dest.Y+1];
             if(Vertical){
                 double Mid=(Anchor(0,Cell).Y+Anchor(1,Cell).Y)*.5;
@@ -233,8 +248,8 @@ void AClimbingStation::Tick(float Delta)
         }
         if(Valid){
             Step=Dest-Cell;
-            Lead=Vertical ? NextLead : int(Horizontal<0); // Match on the shared hold before reaching out.
-            if (Vertical && !bRopeNet){
+            Lead=Vertical ? NextLead : int(Horizontal<0);
+            if (Vertical){
                 // Start with the crossover that requires less shoulder span.
                 float Left=(Anchor(0,Dest)-Anchor(1,Cell)).Size();
                 float Right=(Anchor(1,Dest)-Anchor(0,Cell)).Size();
@@ -244,11 +259,58 @@ void AClimbingStation::Tick(float Delta)
         }
     }
     if(Step!=FIntPoint::ZeroValue){
-        Phase=FMath::Min(1.f,Phase+Delta/(bRopeNet?.68f:.94f));
+        Phase=FMath::Min(1.f,Phase+Delta/.94f);
         if(Phase>=1){Cell+=Step;Step=FIntPoint::ZeroValue;Phase=0;NextLead=1-Lead;
             for(int I=0;I<4;++I) Contacts[I].LocalPoint=Anchor(I,Cell);}
     }
     ApplyPose(Delta);
+}
+void AClimbingStation::MoveOnNet(FVector2D Input, float Delta)
+{
+    // Keep the old straight-line pace in each axis. Only the grips snap to knots.
+    NetStance += Input * (Delta/.68);
+    NetStance.X = FMath::Clamp(NetStance.X,-2.,2.);
+    NetStance.Y = FMath::Clamp(NetStance.Y,0.,13.);
+    if (Phase < 1.f){
+        Phase = FMath::Min(1.f,Phase + Delta/.32f);
+        if (Phase < 1.f) return;
+        Contacts[Lead].LocalPoint = NetReachTarget[Lead];
+        Contacts[NetSwingFoot].LocalPoint = NetReachTarget[NetSwingFoot];
+        NextLead = 1-Lead;
+    }
+
+    const FIntPoint Nearest(FMath::RoundToInt(NetStance.X),FMath::RoundToInt(NetStance.Y));
+    for (int Attempt=0; Attempt<2; ++Attempt){
+        const int Hand = Attempt ? 1-NextLead : NextLead;
+        // On a traverse clear the outside grips first so hands do not cross.
+        const double SideError = Anchor(Hand,Nearest).Y - Contacts[Hand].LocalPoint.Y;
+        const int Other = 1-Hand;
+        if (FMath::Abs(SideError)>1. && FMath::Abs(Anchor(Hand,Nearest).Y-Contacts[Other].LocalPoint.Y)<1.
+            && FMath::Abs(Anchor(Other,Nearest).Y-Contacts[Other].LocalPoint.Y)>1.) continue;
+        const int Foot = 2 + (FMath::Abs(SideError)>1. ? Hand : Other);
+        const FVector HandTarget = Anchor(Hand,Nearest), FootTarget = Anchor(Foot,Nearest);
+        if (Contacts[Hand].LocalPoint.Equals(HandTarget) && Contacts[Foot].LocalPoint.Equals(FootTarget)) continue;
+        Lead = Hand;
+        NetSwingFoot = Foot;
+        NetReachTarget[Hand] = HandTarget;
+        NetReachTarget[Foot] = FootTarget;
+        Phase = 0.f;
+        break;
+    }
+}
+
+FVector AClimbingStation::NetLimbTarget(int Limb)
+{
+    const bool Moving = (Limb==Lead || Limb==NetSwingFoot) && Phase<1.f
+        && !Contacts[Limb].LocalPoint.Equals(NetReachTarget[Limb]);
+    const float Swing = Moving ? FMath::Clamp((Phase-(Limb<2 ? 0.f : .1f))/.9f,0.f,1.f) : 0.f;
+    const float T = FMath::SmoothStep(0.f,1.f,Swing);
+    FVector Target = FMath::Lerp(Contacts[Limb].LocalPoint,NetReachTarget[Limb],T);
+    Target.X -= 3.f*FMath::Sin(PI*T);
+    Contacts[Limb].bLocked = Swing==0.f || Swing==1.f;
+    NetLoadWeight[Limb] = 1.f-FMath::SmoothStep(0.f,.14f,Swing)+FMath::SmoothStep(.86f,1.f,Swing);
+    NetContact[Limb] = Target-FVector(0,0,Limb<2 ? 1 : 6);
+    return Target+NetDisplacement(NetContact[Limb]);
 }
 FVector AClimbingStation::PlaceFoot(int Side,float Delta)
 {
@@ -275,16 +337,16 @@ void AClimbingStation::ApplyPose(float Delta)
 {
     FVector Targets[4];
     for(int I=0;I<4;++I){
+        if (bRopeNet){
+            Targets[I] = NetLimbTarget(I);
+            continue;
+        }
         bool First=(I%2==Lead) != (I>=2);
         float Reach=FMath::Clamp(Phase*2-(First?0.f:1.f),0.f,1.f);
         float T=FMath::SmoothStep(.12f,.86f,Reach);
         Targets[I]=FMath::Lerp(Contacts[I].LocalPoint,Anchor(I,Cell+Step),T);
-        Targets[I].X-=(bRopeNet?3:5)*FMath::Sin(PI*T);
+        Targets[I].X-=5*FMath::Sin(PI*T);
         Contacts[I].bLocked=T==0.f || T==1.f;
-        if(Net){
-            NetContact[I]=Targets[I]-FVector(0,0,I<2?1:6);
-            Targets[I]+=Net->Offset(NetContact[I]);
-        }
     }
     FVector Mid=(Targets[0]+Targets[1])*.5;
     float Pulse=FMath::Sin(Phase*2*PI);
@@ -292,9 +354,19 @@ void AClimbingStation::ApplyPose(float Delta)
     // Roll the shoulder line towards the higher grip; the hips counterbalance beneath it.
     const FQuat Tilt(FVector::ForwardVector,FMath::DegreesToRadians(Lean));
     FVector ShoulderOffset=Tilt.RotateVector(FVector(0,0,22));
-    FVector Base=Mid-FVector(bRopeNet?13:12,ShoulderOffset.Y,ShoulderOffset.Z+26+7-60);
+    FVector Base=Mid-FVector(bRopeNet?10:12,ShoulderOffset.Y,ShoulderOffset.Z+26+7-60);
+    if (bRopeNet) Base.Z-=5; // Keep some bend in the loaded knee on the lower rung.
     Base.Y+=(Lead?-1:1)*Pulse*(bRopeNet?1.7:3.6);
-    Base.Z-=2.8*FMath::Square(FMath::Sin(Phase*2*PI));
+    Base.Z-=(bRopeNet ? .65 : 2.8)*FMath::Square(Pulse);
+    if (bRopeNet){
+        // Carry the torso along the route independently of individual reaches.
+        // Keep the net displacement in Mid so the body still rides its sway.
+        const FVector RestMid(-21.8,20.*NetStance.X,49.+16.*NetStance.Y);
+        const FVector HandMid = (NetContact[0]+NetContact[1])*.5 + FVector(0,0,1);
+        Base += RestMid - HandMid;
+        NetBodyPosition = Delta<=0 ? Base : FMath::Lerp(NetBodyPosition,Base,1.-FMath::Exp(-16.*Delta));
+        Base = NetBodyPosition;
+    }
     Runner->SetActorLocationAndRotation(GetActorTransform().TransformPosition(Base),GetActorRotation(),false,nullptr,ETeleportType::TeleportPhysics);
     Pose->ResetBoneTransformByName(TEXT("spine_01"));
     auto Spine=Pose->GetBoneTransformByName(TEXT("spine_01"),EBoneSpaces::WorldSpace);

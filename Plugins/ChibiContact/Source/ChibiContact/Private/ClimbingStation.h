@@ -31,6 +31,13 @@ private:
     TUniquePtr<FClimbingNet> Net;
     UPROPERTY() TObjectPtr<UTexture2D> NetOffsets;
     FVector NetContact[4];
+    float NetLoadWeight[4] = {1.f, 1.f, 1.f, 1.f};
+    FVector2D NetStance = FVector2D::ZeroVector; // Continuous column and row coordinates.
+    FVector NetReachTarget[4];
+    int NetSwingFoot = 0;
+    void MoveOnNet(FVector2D Input, float Delta);
+    FVector NetLimbTarget(int Limb);
+    FVector NetBodyPosition = FVector::ZeroVector;
     void UpdateNet(float Delta);
     void UploadNet();
     TWeakObjectPtr<APlayerController> MountController;
