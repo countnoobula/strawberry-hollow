@@ -195,6 +195,8 @@ BOUNDS={
 
 def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
     creeping=creeping or shape is not None
+    cliff=name in ('SM_Valley_MossCliffShelf','SM_Valley_MossPromontory')
+    sculpted_moss=creeping or cliff
     rng=random.Random(seed);ph=[rng.random()*2*pi for _ in range(9)]
     n=336 if creeping else 112
     verts=[];faces=[];indices=[];faceuv=[]
@@ -235,10 +237,10 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
         key_r=[.72,.91,.985,.99,.974,.945,.83]
         layers=[(np.interp(z,key_z,key_r),z) for z in heights]
     rings=[ring(r,z,'rock') for r,z in layers]
+    def smooth(a,b,x):
+        t=max(0,min(1,(x-a)/(b-a)))
+        return t*t*(3-2*t)
     if creeping:
-        def smooth(a,b,x):
-            t=max(0,min(1,(x-a)/(b-a)))
-            return t*t*(3-2*t)
         planes=[(-.69,.68,.20,.377),(.20,.94,.15,.388),
                 (.78,.32,.78,.694),(-.15,.80,-.68,.213),(.91,-.18,-.37,.552)]
         if shape=='wedge':
@@ -334,7 +336,7 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
     skin=[(.925,.816,1,0),(.969,.801,1,.02),(.994,.817,.99,.14),
           (1.000,.841,.93,.32),(.996,.868,.78,.50),(.990,.892,.59,.65),
           (.980,.913,.38,.79),(.962,.931,.19,.91)]
-    if creeping:
+    if sculpted_moss:
         # Extra loops allow the moss to follow the narrow ledges in the stone.
         interpolated=[]
         for a,b in zip(skin,skin[1:]):
@@ -365,6 +367,7 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
         ids=(last[i],last[(i+1)%n],center);poly(ids,1,planar(ids))
 
     # Occasional round-tipped three-leaf moss shoots, tucked into the cushions.
+    first_shoot_face=len(faces)
     for _ in range(round(8+w*depth*5)):
         quad=rng.choice(crown_faces)
         a,b,c,d=(Vector(verts[i]) for i in quad)
@@ -411,7 +414,7 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
             floor=hit.z+.013*h
             blend=max(.019*h-abs(z-floor),0)
             verts[i]=(x,y,min(hi[2],max(floor,z)+blend*blend/(.076*h)))
-    if creeping:
+    if sculpted_moss:
         # Long lobes grow directly out of the same continuous cushion. Their
         # taper and subtle sideways drift differ around the stone. The prominent
         # lobe faces local +Y in Blender, corresponding to the creek approach.
@@ -425,6 +428,12 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
         elif shape=='step':
             tongues=[(48,.36,.151,-.09),(79,.16,.105,.03),(-178,.42,.129,.06),
                      (-60,.21,.18,-.12)]
+        elif name=='SM_Valley_MossCliffShelf':
+            tongues=[(69,.19,.43,.08),(106,.24,.29,-.05),(-55,.20,.36,.07),(-126,.24,.48,-.07)]
+        elif name=='SM_Valley_MossPromontory':
+            tongues=[(24,.27,.24,-.06),(88,.29,.36,.11),(-78,.21,.34,-.09),(-154,.18,.20,.07)]
+        pad_scale=h/.56 if cliff else 1.
+        ray_radius=max(w,depth)+1 if cliff else 2.
         for ring_number,ring_ids in enumerate(moss_rings[:shoulder]):
             level=ring_number/5
             t=min(1,max(0,(level-.8)/6.2))
@@ -441,10 +450,10 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
                 x,y,z=verts[idx]
                 direction=Vector((x,y,0)).normalized()
                 new_z=z-profile*pull
-                origin=direction*2+Vector((0,0,new_z))
+                origin=direction*ray_radius+Vector((0,0,new_z))
                 contact=stone_surface.ray_cast(origin,-direction)[0]
                 if contact is None or contact.dot(direction)<=0: continue
-                edge_padding=np.interp(level,[0,1,2,3,4,5,6,7],
+                edge_padding=pad_scale*np.interp(level,[0,1,2,3,4,5,6,7],
                     [-.003,.006,.011,.015,.019,.019,.014,.010])
                 surface_radius=math.hypot(contact.x,contact.y)
                 # Keep the original cap's outward fullness where the creep
@@ -483,7 +492,7 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
                 p=s*s*s*a+3*s*s*t*control_a+3*s*t*t*control_b+t*t*t*b
                 # Add softness outside the original stone envelope rather than
                 # shaving the corner through the high point of the rock.
-                bulge=(sin(pi*t)**2)*.028
+                bulge=(sin(pi*t)**2)*.028*pad_scale
                 outward=Vector((p.x,p.y,0)).normalized()
                 p+=bulge*(outward+Vector((0,0,.85)))
                 verts[idx]=tuple(p)
@@ -491,7 +500,7 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
                 directions[idx]=direction
                 hit=stone_surface.ray_cast(p+direction,-direction,2)[0]
                 if hit is not None:
-                    correction[k,i]=max(0,.009-(p-hit).dot(direction))
+                    correction[k,i]=max(0,.009*pad_scale-(p-hit).dot(direction))
         # Carry clearance into the adjacent samples so an angular stone
         # shoulder cannot poke through the continuous fillet or flatten it.
         for _ in range(8):
@@ -536,6 +545,49 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
             previous=point
     for face in range(moss_rim_face_start,moss_rim_face_start+shoulder*n):
         faceuv[face]=[rim_uv[idx] for idx in faces[face]]
+    if sculpted_moss:
+        # Use the original planted markers to preserve each cluster's position,
+        # orientation and scale on the finished moss.
+        guides=[(Vector(verts[j]),Vector(verts[j+3])) for j in range(center+1,len(verts),7)]
+        del verts[center+1:]
+        del faces[first_shoot_face:],indices[first_shoot_face:],faceuv[first_shoot_face:]
+        up=Vector((0,0,1))
+        segments=10
+        for leaf,(base,tip) in enumerate(guides):
+            reach=tip-base
+            forward=Vector((reach.x,reach.y,0)).normalized()
+            across=up.cross(forward)
+            length=max(reach.length,.01)*1.28
+            hit=new_skin.ray_cast((base.x,base.y,hi[2]+1),(0,0,-1))[0]
+            if hit is not None: base.z=hit.z
+            base-=up*(length*.09)
+            root=len(verts);verts.append(tuple(base))
+            previous=[]
+            # Sweep a plump oval section up an arch, rolling the lip gently
+            # down. A shallow transverse cup makes the side rims catch light.
+            lean=.09*sin(leaf*2.4)
+            for t in (.09,.22,.39,.57,.73,.86,.95,.985):
+                arc=sin(pi*t)
+                mid=base+length*(forward*t+across*(lean*t*t)+up*(.63*t+.34*arc))
+                tangent=(forward+2*lean*t*across+up*(.63+.34*pi*cos(pi*t))).normalized()
+                normal=tangent.cross(across).normalized()
+                lateral=normal.cross(tangent)
+                profile=arc**.54*(.55+.76*t)
+                ring=[]
+                for k in range(segments):
+                    angle=2*pi*k/segments
+                    side=cos(angle)
+                    point=mid+length*profile*(.325*side*lateral+(.095*sin(angle)+.059*side*side)*normal)
+                    ring.append(len(verts));verts.append(tuple(point))
+                for k in range(segments):
+                    j=(k+1)%segments
+                    ids=(previous[k],previous[j],ring[j],ring[k]) if previous else (root,ring[j],ring[k])
+                    poly(ids,2,planar(ids))
+                previous=ring
+            end=len(verts);verts.append(tuple(base+length*(forward+lean*across+.63*up)))
+            for k in range(segments):
+                ids=(previous[k],previous[(k+1)%segments],end);poly(ids,2,planar(ids))
+
     # Shape the complete skin and stone together, so the crown, turned-over
     # rim and individual shoots all keep their contact with the underlying rock.
     if shape=='wedge':
@@ -547,12 +599,12 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
     mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.materials.append(rock);mesh.materials.append(boulder_moss if creeping else moss);mesh.materials.append(tipmat)
     mesh.update();uv=mesh.uv_layers.new(name='SurfaceUV')
     for poly_,mi,coords in zip(mesh.polygons,indices,faceuv):
-        poly_.material_index=mi;poly_.use_smooth=mi!=2
+        poly_.material_index=mi;poly_.use_smooth=sculpted_moss or mi!=2
         for idx,xy in zip(poly_.loop_indices,coords):uv.data[idx].uv=xy
     obj=bpy.data.objects.new(name,mesh);scene.collection.objects.link(obj)
     for ob in bpy.context.selected_objects:ob.select_set(False)
     obj.select_set(True);bpy.context.view_layer.objects.active=obj
-    if creeping:
+    if sculpted_moss:
         # Relax the crown and visible drape together with the crown interior
         # pinned to its world-scale UVs. A few short darts at the tucked lower
         # lip relieve the longest tongues without cutting through the shoulder.
@@ -572,13 +624,15 @@ def create(name,w,depth,h,seed,rounded,fringe,creeping=False,shape=None):
         bpy.context.tool_settings.mesh_select_mode=(False,False,True)
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.uv.unwrap(method='CONFORMAL',correct_aspect=False,margin=0)
+        bpy.ops.uv.unwrap(method='MINIMUM_STRETCH',iterations=20,correct_aspect=False,margin=0)
         bpy.ops.object.mode_set(mode='OBJECT')
-    export_mesh=(creeping if '--creek-boulders-only' in sys.argv else
+    export_mesh=(cliff if '--cliffs-only' in sys.argv else
+                 creeping if '--creek-boulders-only' in sys.argv else
                  shape is not None if '--creek-set-only' in sys.argv else
                  name=='SM_Valley_CreepingMossBoulder' if '--variant-only' in sys.argv else True)
     if export_mesh:
         bpy.ops.export_scene.fbx(filepath=str(OUT/(name+'.fbx')),use_selection=True,object_types={'MESH'},axis_forward='-Y',axis_up='Z',apply_unit_scale=True,apply_scale_options='FBX_SCALE_NONE',bake_anim=False,add_leaf_bones=False,mesh_smooth_type='FACE',path_mode='RELATIVE')
-    if name=='SM_Valley_MossCreekBoulder':
+    if cliff or name=='SM_Valley_MossCreekBoulder':
         # Existing FBX slot names are a reimport contract. Match the assigned
         # Unreal material override when presenting the original rock in Blender.
         mesh.materials[1]=boulder_moss
